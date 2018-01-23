@@ -1,3 +1,6 @@
 export default () => (
-  <span>This is Next.js speaking</span>
+  <div>
+    <h1>Bravo Paola!</h1>
+    <h3>Tu as reussi de lancer le programme<br/>On est fière de toi :P</h3>
+  </div>
 )
