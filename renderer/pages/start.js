@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 
 import TitleBar from '../containers/TitleBar';
+import Tournaments from '../containers/Tournaments';
 
 export default class App extends React.Component {
   render() {
@@ -16,6 +17,7 @@ export default class App extends React.Component {
         </Head>
 
         <TitleBar/>
+        <Tournaments/>
         <div id="bravoPaola">
           <h1>Bravo Paola!</h1>
           <h3>Tu as reussi de lancer le programme<br/>On est fière de toi :P</h3>

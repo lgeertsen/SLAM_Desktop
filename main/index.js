@@ -27,6 +27,8 @@ app.on('ready', async () => {
 
   const url = isDev ? devPath : prodPath
   mainWindow.loadURL(url)
+
+  mainWindow.webContents.openDevTools()
 })
 
 // Quit the app once all windows are closed
