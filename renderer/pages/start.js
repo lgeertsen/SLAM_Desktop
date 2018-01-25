@@ -18,16 +18,9 @@ export default class App extends React.Component {
 
         <TitleBar/>
         <Tournaments/>
-        <div id="bravoPaola">
-          <h1>Bravo Paola!</h1>
-          <h3>Tu as reussi de lancer le programme<br/>On est fière de toi :P</h3>
-        </div>
 
         <style jsx>{`
-          #bravoPaola {
-            text-align: center;
-            margin-top: 200px;
-          }
+
         `}</style>
         <style jsx global>{`
           html, body {

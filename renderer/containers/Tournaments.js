@@ -39,31 +39,47 @@ export default class Tournaments extends React.Component {
   render() {
     return (
       <div id="tournaments">
-        <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
+        <div id="tournamentContainer">
+          <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
+          {this.state.tournament != undefined ?
+            <div>
+              <h1>Selected Tournament</h1>
+              <h2>{this.state.tournament.sport} tournament</h2>
+              <h4>Date: {this.state.tournament.date}</h4>
+              <h4>Participants:</h4>
+              <ul>
+                {this.state.tournament.participants.map(participant => (
+                  <li key={participant.id}>
+                    <h6>{participant.user.name}</h6>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            :
+            ""
+          }
+        </div>
+        <div id="tournamentListContainer">
+          <TournamentList tournaments={this.state.tournaments} loadTournament={(id) => this.loadTournament(id)}/>
+        </div>
 
-        <TournamentList tournaments={this.state.tournaments} loadTournament={(id) => this.loadTournament(id)}/>
-
-        {this.state.tournament != undefined ?
-          <div>
-            <h1>Selected Tournament</h1>
-            <h2>{this.state.tournament.sport} tournament</h2>
-            <h4>Date: {this.state.tournament.date}</h4>
-            <h4>Participants:</h4>
-            <ul>
-              {this.state.tournament.participants.map(participant => (
-                <li key={participant.id}>
-                  <h6>{participant.user.name}</h6>
-                </li>
-              ))}
-            </ul>
-          </div>
-          :
-          ""
-        }
 
 
         <style jsx>{`
-
+          #tournaments {
+            display: flex;
+            height: calc(100vh - 30px);
+          }
+          #tournamentContainer {
+            flex: 1;
+            height: 100%;
+            overflow: auto;
+          }
+          #tournamentListContainer {
+            width: 300px;
+            height: 100%;
+            background: #ecf0f1;
+          }
         `}</style>
       </div>
     );

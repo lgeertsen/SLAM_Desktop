@@ -17,6 +17,8 @@ app.on('ready', async () => {
     frame: false,
   })
 
+  mainWindow.maximize()
+
   const devPath = 'http://localhost:8000/start'
 
   const prodPath = format({
