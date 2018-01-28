@@ -4,6 +4,10 @@ import Head from 'next/head';
 import TitleBar from '../containers/TitleBar';
 import Tournaments from '../containers/Tournaments';
 
+// New client created successfully.
+// Client ID: 1
+// Client secret: OnyPOEoBzz5j7J52IXGZ8G98S5lWjtMBZv7pSEDr
+
 export default class App extends React.Component {
   render() {
     return (
@@ -25,6 +29,7 @@ export default class App extends React.Component {
         <style jsx global>{`
           html, body {
             height: 100%;
+            overflow: hidden;
           }
         `}</style>
       </div>

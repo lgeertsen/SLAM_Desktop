@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
+import querystring from 'querystring';
 
+import Login from '../components/Login';
 import TournamentList from '../components/TournamentList';
 import ParticipantList from '../components/ParticipantList';
 
@@ -13,38 +15,72 @@ export default class Tournaments extends React.Component {
       'tournaments': [],
       'participants': [],
       'nbTerrain': 1,
+      'username': '',
+      'password': '',
+      'accessToken': '',
+      'authenticated': false
     }
   }
 
+  login() {
+    axios.post('https://lets-go2.herokuapp.com/oauth/token', querystring.stringify({
+      // 'form_params': {
+        'grant_type': 'password',
+        'client_id': 61,
+        'client_secret': 'Gy8l6blIkFUcSbkMmnEj3wnlfbNGmU90lDpEMMDR',
+        'username': this.state.username,
+        'password': this.state.password,
+        'scope': '*',
+      // }
+    }))
+    .then(response => {
+      console.log(response);
+      this.setState({'authenticated': true, 'accessToken': response.data.access_token})
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   loadTournaments() {
-    axios.get('https://lets-go2.herokuapp.com/api/tournaments')
-      .then((response) => {
-        console.log(response.data.data);
-        this.setState({'tournaments': response.data.data});
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    axios.get('https://lets-go2.herokuapp.com/api/tournaments', {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + this.state.accessToken
+      }
+    })
+    .then((response) => {
+      console.log(response.data.data);
+      this.setState({'tournaments': response.data.data});
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
   }
 
   loadTournament(id) {
     let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + id;
-    axios.get(url)
-      .then((response) => {
-        console.log(response.data);
-        let participants = [];
-        for(let i in response.data.participants){
-          let p = response.data.participants[i];
-          p.present = false;
-          participants.push(p);
-        }
-        this.setState({'tournament': response.data, 'participants': participants});
-        console.log("participants = ");
-        console.log(this.state.participants);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+    axios.get(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + this.state.accessToken
+      }
+    })
+    .then((response) => {
+      console.log(response.data);
+      let participants = [];
+      for(let i in response.data.participants){
+        let p = response.data.participants[i];
+        p.present = false;
+        participants.push(p);
+      }
+      this.setState({'tournament': response.data, 'participants': participants});
+      console.log("participants = ");
+      console.log(this.state.participants);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
   }
 
   participantPresent(index) {
@@ -76,8 +112,15 @@ export default class Tournaments extends React.Component {
   render() {
     return (
       <div id="tournaments">
+        {this.state.authenticated ? "" :
+          <Login
+            username={this.state.username}
+            usernameChange={(e) => this.setState({'username': e.target.value})}
+            password={this.state.password}
+            passwordChange={(e) => this.setState({'password': e.target.value})}
+            login={() => this.login()}/>
+        }
         <div id="tournamentContainer">
-          <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
           {this.state.tournament != undefined ?
             <div>
               <h1>Selected Tournament</h1>
@@ -91,11 +134,12 @@ export default class Tournaments extends React.Component {
           }
         </div>
         <div id="tournamentListContainer">
+          <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
           <TournamentList tournaments={this.state.tournaments} loadTournament={(id) => this.loadTournament(id)}/>
-          <input type="number" value={this.state.nbTerrain} onChange={(e) => this.setState({'nbTerrain': e.target.value})}></input>
+          <input className="form-control" type="number" value={this.state.nbTerrain} onChange={(e) => this.setState({'nbTerrain': e.target.value})}/>
+          <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.props.arbre()}>Start</button>
         </div>
 
-        <div> <button className="btn" onClick={() => this.props.arbre()}>Start</button></div>
 
         <style jsx>{`
           #tournaments {
@@ -108,9 +152,18 @@ export default class Tournaments extends React.Component {
             overflow: auto;
           }
           #tournamentListContainer {
-            width: 300px;
+            position: relative;
+            padding: 10px;
+            width: 320px;
             height: 100%;
             background: #ecf0f1;
+            text-align: center;
+          }
+          #start {
+            position: absolute;
+            bottom: 10px;
+            right: 5%;
+            width: 90%;
           }
         `}</style>
       </div>
