@@ -18,7 +18,7 @@ export default class Tournaments extends React.Component {
       'username': '',
       'password': '',
       'accessToken': '',
-      'authenticated': false
+      'authenticated': true
     }
   }
 
