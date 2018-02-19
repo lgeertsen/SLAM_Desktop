@@ -96,21 +96,66 @@ export default class Tournaments extends React.Component {
     this.setState({'teams': teams})
   }
 
-  // arbre(){
-  //   let participantpres=[];
-  //   for(let i in participants){
-  //     if(participants[i].present){
-  //       participantpres.push(participants[i]);
-  //     }
-  //   }
-  //   let nbJeu=0;
-  //   nbJeu = participantpres.length-1;
-  //
-  //   let nbTerrain = this.state.nbTerrain;
-  //
-  //   let i=0;
-  //   while(i < nbTerrain)
-  // }
+  arbre(){
+      let participantpres=[];
+        for(let i in this.state.teams){
+          if(this.state.teams[i].present){
+            participantpres.push(this.state.teams[i]);
+          }
+      }
+      let nbJoueur = participantpres.length;
+      //let nbJeu=1;
+      let nbTour = 1;
+      while(Math.pow(2,nbTour) < nbJoueur){
+        nbTour++;
+      }
+      let indice = nbTour;
+      let nbDuel = (nbJoueur-(Math.pow(2,nbTour)-nbJoueur))/2;
+      //let nbTerrain = this.state.nbTerrain;
+      let i=0;
+      let match=[];
+      //
+      // //remplir le tableau avec les matchs ordinaires (premier match)
+      // while(nbDuel != 0){
+      //   match[i]=new Array();
+      //   let j1 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
+      //   match[i][1] = participantpres[j1];
+      //   participantpres.splice(j1,1);
+      //   let j2 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
+      //   match[i][2] = participantpres[j2];
+      //   participantpres.splice(j2,1);
+      //   i++;
+      //   nbDuel--;
+      // }
+      // //remplir le tableau avec les matchs un seul joueur (premier tour)
+      // while(i < Math.pow(2,nbTour)){
+      //   let j1 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
+      //   match[i][1] = participantpres[j1];
+      //   participantpres.splice(j1,1);
+      //   match[i][3] = participantpres[j1];
+      //   i++;
+      // }
+      // let i2=0;
+      // //remplir troisième ligne avec le gagnant
+      // while(match[i2][3] == NULL){
+      //
+      // }
+      // nbTour--;
+      // while(nbTour!=0){
+      //   let j=0;
+      //   while(j < Math.pow(2,nbTour)){
+      //     match[j][(indice-nbTour)*3] = match[j*2][(indice-nbTour)*3-1];
+      //     match[j][(indice-nbTour)*3+1] = match[j*2+1][(indice-nbTour)*3-1];
+      //     //remplir ligne 3
+      //     j++;
+      //   }
+      //   nbTour--;
+      // }
+      console.log("nbJoueur : ",nbJoueur);
+      console.log("nbTour : ",nbTour);
+      console.log("nbDuel : ",nbDuel);
+
+    }
 
 
 
@@ -142,7 +187,7 @@ export default class Tournaments extends React.Component {
           <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
           <TournamentList tournaments={this.state.tournaments} loadTournament={(id) => this.loadTournament(id)}/>
           <input className="form-control" type="number" value={this.state.nbTerrain} onChange={(e) => this.setState({'nbTerrain': e.target.value})}/>
-          <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.props.arbre()}>Start</button>
+          <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.arbre()}>Start</button>
         </div>
 
 
