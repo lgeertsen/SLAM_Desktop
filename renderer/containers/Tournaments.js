@@ -4,7 +4,7 @@ import querystring from 'querystring';
 
 import Login from '../components/Login';
 import TournamentList from '../components/TournamentList';
-import ParticipantList from '../components/ParticipantList';
+import TeamList from '../components/TeamList';
 
 export default class Tournaments extends React.Component {
   constructor(props) {
@@ -13,7 +13,7 @@ export default class Tournaments extends React.Component {
     this.state = {
       'tournament': undefined,
       'tournaments': [],
-      'participants': [],
+      'teams': [],
       'nbTerrain': 1,
       'username': '',
       'password': '',
@@ -68,27 +68,32 @@ export default class Tournaments extends React.Component {
     })
     .then((response) => {
       console.log(response.data);
-      let participants = [];
-      for(let i in response.data.participants){
-        let p = response.data.participants[i];
-        p.present = false;
-        participants.push(p);
+      let teams = [];
+      for(let i in response.data.teams){
+        let t = response.data.teams[i];
+        t.present = false;
+        teams.push(t);
       }
-      this.setState({'tournament': response.data, 'participants': participants});
-      console.log("participants = ");
-      console.log(this.state.participants);
+      let tournament = {
+        'date': response.data.date,
+        'id': response.data.id,
+        'name': response.data.name,
+        'sport': response.data.sport
+      }
+      this.setState({'tournament': tournament, 'teams': teams});
+      console.log("teams = ");
+      console.log(this.state.teams);
     })
     .catch(function (error) {
       console.log(error);
     });
   }
 
-  participantPresent(index) {
-    let participant=this.state.participants;
-    let p = participant[index].present;
-    participant[index].present = !p;
-    this.setState({'participants': participant})
-    console.log(this.state.participants[0]);
+  teamPresent(index) {
+    let teams = this.state.teams;
+    let p = teams[index].present;
+    teams[index].present = !p;
+    this.setState({'teams': teams})
   }
 
   // arbre(){
@@ -126,8 +131,8 @@ export default class Tournaments extends React.Component {
               <h1>Selected Tournament</h1>
               <h2>{this.state.tournament.sport} tournament</h2>
               <h4>Date: {this.state.tournament.date}</h4>
-              <h4>Participants:</h4>
-              <ParticipantList participants={this.state.participants} participantPresent={(index) => this.participantPresent(index)}/>
+              <h4>Teams:</h4>
+              <TeamList teams={this.state.teams} teamPresent={(index) => this.teamPresent(index)}/>
             </div>
             :
             ""

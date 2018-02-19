@@ -14,7 +14,8 @@ export default class TournamentList extends React.Component {
         <ul className="list-group">
           {this.props.tournaments.map(tournament => (
             <li className="list-group-item" key={tournament.id}>
-              <h5>{tournament.sport} tournament</h5>
+              <h5>{tournament.name}</h5>
+              <h6>{tournament.sport}</h6>
               <h6>{tournament.date}</h6>
               <button className="btn btn-info btn-sm" onClick={() => this.props.loadTournament(tournament.id)}>Load Tournament</button>
             </li>
