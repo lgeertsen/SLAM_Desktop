@@ -2,18 +2,27 @@ import React from 'react';
 import axios from 'axios';
 import querystring from 'querystring';
 
+const io = require('socket.io-client');
+
 import Login from '../components/Login';
 import TournamentList from '../components/TournamentList';
 import TeamList from '../components/TeamList';
+
+var socket;
 
 export default class Tournaments extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      'tournamentsLoaded': false,
+      'selected': 0,
       'tournament': undefined,
+      'validated': false,
+
       'tournaments': [],
       'teams': [],
+      'referees': [],
       'nbTerrain': 1,
       'username': '',
       'password': '',
@@ -22,12 +31,32 @@ export default class Tournaments extends React.Component {
     }
   }
 
+  componentDidMount() {
+    socket = io('https://lets-go-server.herokuapp.com', {
+      transports: ['websocket'],
+    });
+
+    this.loadTournaments();
+
+    socket.on('connected', () => {
+      console.log("connected to server");
+      // this.setState({ isConnected: true });
+    });
+
+    socket.on('joinTournament', data => {
+      console.log("a referee joined: " + data.name);
+      let refs = this.state.referees;
+      refs.push(data.name);
+      this.setState({referees: refs});
+    });
+  }
+
   login() {
     axios.post('https://lets-go2.herokuapp.com/oauth/token', querystring.stringify({
       // 'form_params': {
         'grant_type': 'password',
-        'client_id': 61,
-        'client_secret': 'Gy8l6blIkFUcSbkMmnEj3wnlfbNGmU90lDpEMMDR',
+        'client_id': 1,
+        'client_secret': 'DHDxY2KWlSq41JO8XkTNSieGuIvmztFbZWg8AcvT',
         'username': this.state.username,
         'password': this.state.password,
         'scope': '*',
@@ -51,15 +80,15 @@ export default class Tournaments extends React.Component {
     })
     .then((response) => {
       console.log(response.data.data);
-      this.setState({'tournaments': response.data.data});
+      this.setState({tournamentsLoaded: true, tournaments: response.data.data, selected: response.data.data[0].id});
     })
     .catch(function (error) {
       console.log(error);
     });
   }
 
-  loadTournament(id) {
-    let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + id;
+  loadTournament() {
+    let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + this.state.selected;
     axios.get(url, {
       headers: {
         'Accept': 'application/json',
@@ -80,13 +109,19 @@ export default class Tournaments extends React.Component {
         'name': response.data.name,
         'sport': response.data.sport
       }
+
       this.setState({'tournament': tournament, 'teams': teams});
       console.log("teams = ");
       console.log(this.state.teams);
+      socket.emit('tournamentConnected', {id: tournament.id, name: tournament.name});
     })
     .catch(function (error) {
       console.log(error);
     });
+  }
+
+  selectTournament(id) {
+    this.setState({selected: id});
   }
 
   teamPresent(index) {
@@ -157,11 +192,28 @@ export default class Tournaments extends React.Component {
 
     }
 
-
+  reset() {
+    this.setState({
+      'tournamentsLoaded': false,
+      'selected': 0,
+      'tournament': undefined,
+      'validated': false,
+      'tournaments': [],
+      'teams': [],
+      'nbTerrain': 1,
+      'username': '',
+      'password': '',
+      'accessToken': '',
+      'authenticated': true
+    });
+    this.loadTournaments();
+  }
 
   render() {
     return (
       <div id="tournaments">
+        <button id="reset" className="btn btn-outline-dark btn-sm"
+          onClick={() => this.reset()}>reset</button>
         {this.state.authenticated ? "" :
           <Login
             username={this.state.username}
@@ -170,25 +222,61 @@ export default class Tournaments extends React.Component {
             passwordChange={(e) => this.setState({'password': e.target.value})}
             login={() => this.login()}/>
         }
-        <div id="tournamentContainer">
-          {this.state.tournament != undefined ?
-            <div>
-              <h1>Selected Tournament</h1>
-              <h2>{this.state.tournament.sport} tournament</h2>
-              <h4>Date: {this.state.tournament.date}</h4>
-              <h4>Teams:</h4>
-              <TeamList teams={this.state.teams} teamPresent={(index) => this.teamPresent(index)}/>
+        { this.state.tournament == undefined ?
+          <div id="tournamentSelectContainer">
+            {this.state.tournamentsLoaded == true ?
+              <div id="tournamentSelect">
+                <div className="title">
+                  <h1>Tournaments</h1>
+                </div>
+                <div id="tournamentList">
+                  <TournamentList
+                    tournaments={this.state.tournaments}
+                    // loadTournament={(id) => this.loadTournament(id)}
+                    selected={this.state.selected}
+                    selectTournament={(id) => this.selectTournament(id)}
+                  />
+                </div>
+                <div className="bottom">
+                  <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
+                  <button className="btn btn-success" onClick={() => this.loadTournament()}>Confirm & Load Tournament</button>
+                </div>
+              </div>
+              :
+              <div id="loadingTournaments">
+                <h1>Loading Tournaments</h1>
+                <div className="progress">
+                  <div className="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style={{width: 100 + '%'}}></div>
+                </div>
+              </div>
+            }
+          </div>
+        :
+          <div id="tournamentContainer">
+            <div id="tournament">
+              {this.state.tournament != undefined ?
+                <div>
+                  <h1>Selected Tournament</h1>
+                  <h2>{this.state.tournament.sport} tournament</h2>
+                  <h4>Date: {this.state.tournament.date}</h4>
+                  <h4>Teams:</h4>
+                  <TeamList teams={this.state.teams} teamPresent={(index) => this.teamPresent(index)}/>
+                </div>
+                :
+                ""
+              }
             </div>
-            :
-            ""
-          }
-        </div>
-        <div id="tournamentListContainer">
-          <button className="btn btn-warning" onClick={() => this.loadTournaments()}>Load Tournaments</button>
-          <TournamentList tournaments={this.state.tournaments} loadTournament={(id) => this.loadTournament(id)}/>
-          <input className="form-control" type="number" value={this.state.nbTerrain} onChange={(e) => this.setState({'nbTerrain': e.target.value})}/>
-          <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.arbre()}>Start</button>
-        </div>
+            <div id="sidebar">
+              <input className="form-control" type="number" value={this.state.nbTerrain} onChange={(e) => this.setState({'nbTerrain': e.target.value})}/>
+              <ul>
+                {this.state.referees.map((referee, index) => (
+                  <li key={index}>{referee}</li>
+                ))}
+              </ul>
+              <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.arbre()}>Start</button>
+            </div>
+          </div>
+        }
 
 
         <style jsx>{`
@@ -196,12 +284,56 @@ export default class Tournaments extends React.Component {
             display: flex;
             height: calc(100vh - 30px);
           }
+          #reset {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+          }
+          #tournamentSelect {
+            flex: 1;
+            /* margin: 40px; */
+            width: 100%;
+            /* height: 20vh; */
+            /* background: green; */
+            display: flex;
+            flex-direction: column;
+          }
+          #tournamentSelectContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+          }
+          #tournamentSelect .title {
+            text-align: center;
+            margin-top: 5px;
+          }
+          #tournamentSelect #tournamentList {
+            flex: 1;
+            overflow-y: auto;
+            /* padding: 0 20px; */
+            margin: 5px 0;
+          }
+          #tournamentSelect .bottom {
+            margin: 10px 0;
+            text-align: center;
+          }
+          #loadingTournaments {
+            text-align: center;
+            width: 50%;
+            height: 50%;
+            margin: 25%;
+          }
           #tournamentContainer {
+            width: 100%;
+            display: flex;
+          }
+          #tournament {
             flex: 1;
             height: 100%;
             overflow: auto;
           }
-          #tournamentListContainer {
+          #sidebar {
             position: relative;
             padding: 10px;
             width: 320px;

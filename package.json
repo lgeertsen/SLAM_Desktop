@@ -28,7 +28,10 @@
   "dependencies": {
     "app-root-path": "2.0.1",
     "axios": "^0.17.1",
+    "bufferutil": "^3.0.3",
     "electron-is-dev": "0.3.0",
-    "electron-next": "3.1.1"
+    "electron-next": "3.1.1",
+    "socket.io-client": "^2.0.4",
+    "utf-8-validate": "^4.0.0"
   }
 }
