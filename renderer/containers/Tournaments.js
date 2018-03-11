@@ -1,4 +1,5 @@
 import React from 'react';
+//import ReactTable from 'react-table'
 import axios from 'axios';
 import querystring from 'querystring';
 
@@ -20,8 +21,11 @@ export default class Tournaments extends React.Component {
       'tournament': undefined,
       'validated': false,
 
+      'teamsLoaded': false,
+
       'tournaments': [],
       'teams': [],
+      'matchs': [],
       'referees': [],
       'nbTerrain': 1,
       'username': '',
@@ -133,10 +137,10 @@ export default class Tournaments extends React.Component {
 
   arbre(){
       let participantpres=[];
-        for(let i in this.state.teams){
-          if(this.state.teams[i].present){
-            participantpres.push(this.state.teams[i]);
-          }
+      for(let i in this.state.teams){
+        if(this.state.teams[i].present){
+          participantpres.push(this.state.teams[i]);
+        }
       }
       let nbJoueur = participantpres.length;
       //let nbJeu=1;
@@ -149,48 +153,67 @@ export default class Tournaments extends React.Component {
       //let nbTerrain = this.state.nbTerrain;
       let i=0;
       let match=[];
-      //
-      // //remplir le tableau avec les matchs ordinaires (premier match)
-      // while(nbDuel != 0){
-      //   match[i]=new Array();
-      //   let j1 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
-      //   match[i][1] = participantpres[j1];
-      //   participantpres.splice(j1,1);
-      //   let j2 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
-      //   match[i][2] = participantpres[j2];
-      //   participantpres.splice(j2,1);
-      //   i++;
-      //   nbDuel--;
-      // }
-      // //remplir le tableau avec les matchs un seul joueur (premier tour)
-      // while(i < Math.pow(2,nbTour)){
-      //   let j1 = participantpres[Math.floor(Math.random() * Math.floor(participantpres.length))];
-      //   match[i][1] = participantpres[j1];
-      //   participantpres.splice(j1,1);
-      //   match[i][3] = participantpres[j1];
-      //   i++;
-      // }
-      // let i2=0;
-      // //remplir troisième ligne avec le gagnant
-      // while(match[i2][3] == NULL){
-      //
-      // }
-      // nbTour--;
-      // while(nbTour!=0){
-      //   let j=0;
-      //   while(j < Math.pow(2,nbTour)){
-      //     match[j][(indice-nbTour)*3] = match[j*2][(indice-nbTour)*3-1];
-      //     match[j][(indice-nbTour)*3+1] = match[j*2+1][(indice-nbTour)*3-1];
-      //     //remplir ligne 3
-      //     j++;
-      //   }
-      //   nbTour--;
-      // }
+
       console.log("nbJoueur : ",nbJoueur);
       console.log("nbTour : ",nbTour);
       console.log("nbDuel : ",nbDuel);
+      console.table(participantpres);
 
+       //remplir le tableau avec les matchs ordinaires (premier match)
+       while(nbDuel != 0){
+         match[i]=new Array();
+         let n1=Math.floor(Math.random() * Math.floor(participantpres.length));
+         match[i][1] = participantpres[n1].name;
+         participantpres.splice(n1,1);
+         let n2=Math.floor(Math.random() * Math.floor(participantpres.length));
+         match[i][2] = participantpres[n2].name;
+         participantpres.splice(n2,1);
+         i++;
+         nbDuel--;
+       }
+
+       //remplir le tableau avec les matchs un seul joueur (premier tour)
+
+       while((i < Math.pow(2,nbTour)) &&(participantpres.length != 0) ){
+         match[i]=new Array();
+         let n1=Math.floor(Math.random() * Math.floor(participantpres.length));
+         match[i][1] = participantpres[n1].name;
+         match[i][3] = participantpres[n1].name;
+         participantpres.splice(n1,1);
+         i++;
+
+       }
+
+       let i2=0;
+
+       //remplir troisième ligne avec le gagnant
+       //while(match[i2][3] == NULL){
+       //
+       //}
+/*
+       nbTour--;
+       while(nbTour!=0){
+         match[i]=new Array();
+         let j=0;
+         while(j < Math.pow(2,nbTour)){
+           match[j][(indice-nbTour)*3] = match[j*2][(indice-nbTour)*3-1];
+           match[j][(indice-nbTour)*3+1] = match[j*2+1][(indice-nbTour)*3-1];
+           //remplir ligne 3
+           j++;
+         }
+         nbTour--;
+       }
+*/
+       console.table(participantpres);
+       console.log("Matchs");
+       console.table(match);
+
+       //this.state.teamsLoaded=true;
+       //this.state.matchs=match;
+       this.setState({teamsLoaded:true});
+       this.setState({matchs:match});
     }
+
 
   reset() {
     this.setState({
@@ -198,8 +221,14 @@ export default class Tournaments extends React.Component {
       'selected': 0,
       'tournament': undefined,
       'validated': false,
+
+      'teamsLoaded': false,
+
       'tournaments': [],
       'teams': [],
+
+      'matchs': [],
+
       'nbTerrain': 1,
       'username': '',
       'password': '',
@@ -208,6 +237,8 @@ export default class Tournaments extends React.Component {
     });
     this.loadTournaments();
   }
+
+
 
   render() {
     return (
@@ -252,6 +283,49 @@ export default class Tournaments extends React.Component {
             }
           </div>
         :
+
+
+        <div id="teamsContainer">
+          <div id="teams">
+           { this.state.teamsLoaded !=false ?
+
+          <div>
+            <h1>Arborescence des matchs</h1>
+
+            <div id="teamsListPres">
+            {/* {this.state.matchs.map(
+              function(line,index){
+                return <div>
+                <tr>
+                {line.map(function(equipe){
+                  return <td width="33%">{equipe}      </td>
+                  //console.log(equipe);
+                })}
+                </tr>
+
+                </div>
+              }
+            )} */}
+
+            <table>
+              <tbody>
+              {this.state.matchs.map((line, index) => (
+                <tr key={index}>
+                  {line.map((equipe, index) => (
+                    <td key={index}>
+                      {equipe}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              </tbody>
+          </table>
+            </div>
+          </div>
+
+            :
+
+
           <div id="tournamentContainer">
             <div id="tournament">
               {this.state.tournament != undefined ?
@@ -273,10 +347,20 @@ export default class Tournaments extends React.Component {
                   <li key={index}>{referee}</li>
                 ))}
               </ul>
+
               <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.arbre()}>Start</button>
             </div>
           </div>
+
+
+
         }
+
+
+        </div>
+      </div>
+    }
+
 
 
         <style jsx>{`
@@ -325,6 +409,14 @@ export default class Tournaments extends React.Component {
             margin: 25%;
           }
           #tournamentContainer {
+            width: 100%;
+            display: flex;
+          }
+          #teamsContainer {
+            width: 100%;
+            display: flex;
+          }
+          #teams {
             width: 100%;
             display: flex;
           }

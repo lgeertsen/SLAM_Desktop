@@ -30,7 +30,6 @@ export default class TeamList extends React.Component {
           </tbody>
       </table>
 
-
         <style jsx>{`
 
         `}</style>
