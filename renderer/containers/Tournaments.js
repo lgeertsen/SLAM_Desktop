@@ -11,6 +11,20 @@ import TeamList from '../components/TeamList';
 
 var socket;
 
+
+export default class Match{
+  constructor(id,joueur1,joueur2){
+    this.id=id
+    this.j1=joueur1;
+    this.j2=joueur2;
+    this.res1=null;
+    this.res2=null;
+  }
+  gagne(){return this.res1>this.res2;}//true si J1 gagne le match false sinon
+
+}
+
+
 export default class Tournaments extends React.Component {
   constructor(props) {
     super(props);
@@ -237,7 +251,9 @@ export default class Tournaments extends React.Component {
     });
     this.loadTournaments();
   }
+agagne(){
 
+}
 
 
   render() {
@@ -293,27 +309,15 @@ export default class Tournaments extends React.Component {
             <h1>Arborescence des matchs</h1>
 
             <div id="teamsListPres">
-            {/* {this.state.matchs.map(
-              function(line,index){
-                return <div>
-                <tr>
-                {line.map(function(equipe){
-                  return <td width="33%">{equipe}      </td>
-                  //console.log(equipe);
-                })}
-                </tr>
-
-                </div>
-              }
-            )} */}
 
             <table>
               <tbody>
-              {this.state.matchs.map((line, index) => (
-                <tr key={index}>
-                  {line.map((equipe, index) => (
-                    <td key={index}>
-                      {equipe}
+              {this.state.matchs.map((line) => (
+                <tr>
+                  {line.map((equipe) => (
+                    <td>
+                      <button className="btn" onClick={() => this.props.agagne()}> {equipe}</button>
+
                     </td>
                   ))}
                 </tr>
