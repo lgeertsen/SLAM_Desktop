@@ -37,9 +37,8 @@ export default class Tournaments extends React.Component {
       'selected': 0,
       'tournament': undefined,
       'validated': false,
-
       'teamsLoaded': false,
-
+      'matchsSuivants':[],
       'tournaments': [],
       'teams': [],
       'matchs': [],
@@ -209,46 +208,102 @@ export default class Tournaments extends React.Component {
       i--;
     }
     /////////////////AFFICHAGE//////////////
-    console.table(tournoi);
-    for (var k = 0; k < tournoi.length; k++) {
-      for (var j = 0; j < tournoi[k].length; j++) {
-        console.log("match",j+1);
-        if (tournoi[k][j].j1 !=null) {
-          console.log(tournoi[k][j].j1.name);
-        }else {
-          console.log("j1 null");
-        }
-        if (tournoi[k][j].j2 !=null) {
-          console.log(tournoi[k][j].j2.name);
-        }else {
-          console.log("j2 null");
-        }
-      }
-
-    }
+    // console.table(tournoi);
+    // for (var k = 0; k < tournoi.length; k++) {
+    //   for (var j = 0; j < tournoi[k].length; j++) {
+    //     console.log("match",j+1);
+    //     if (tournoi[k][j].j1 !=null) {
+    //       console.log(tournoi[k][j].j1.name);
+    //     }else {
+    //       console.log("j1 null");
+    //     }
+    //     if (tournoi[k][j].j2 !=null) {
+    //       console.log(tournoi[k][j].j2.name);
+    //     }else {
+    //       console.log("j2 null");
+    //     }
+    //   }
+    //
+    // }
 
     this.setState({teamsLoaded:true});
     this.setState({matchs:tournoi});
+    for (var r = 0; r < tournoi.length; r++) {
+      for (var j = 0; j < tournoi[r].length; j++) {
+
+        if(tournoi[r][j].j1!=null ||tournoi[r][j].j2!=null){
+        this.state.matchsSuivants.push(tournoi[r][j]);
+      }
+    }
+    }
+  }
+
+  matchsAffichage(){
+    let k=0;
+    let Suivants=[];
+
+    for (var i = 0; i < this.state.matchs.length; i++) {
+      for (var j = 0; j < this.state.matchs[i].length; j++) {
+        if(this.state.matchs[i][j]!=null){
+          if (this.state.matchs[i][j].j1!=null || this.state.matchs[i][j].j2!=null) {
+            if(this.state.matchs[i][j].res1==null){
+              Suivants.push(this.state.matchs[i][j]);
+              k++;
+            }
+          }
+        }
+      }
+    }
+    // for (var v in this.state.matchsSuivants) {
+    //   if(v.j1!=null){
+    //
+    //     console.log(v.j1.name);
+    //   }else {
+    //     console.log("null j1");
+    //   }
+    //
+    //     if(v.j2!=null){
+    //
+    //       console.log(v.j2.name);
+    //     }else {
+    //       console.log("null j2");
+    //     }
+    //
+    // }
+    console.log("matchsSuivants");
+
+    this.setState({matchsSuivants:Suivants});
+    console.table(this.state.matchsSuivants);
   }
 
   jeu(id,tour,joueur){
     // console.log(id);
     // console.log(tour);
     // console.log(joueur);
-    console.log(this.state.matchs);
+    //console.log(this.state.matchs);
+    // console.log(id);
+    // console.log(tour);
+    // console.log(id-1);
+    // console.log(tour/2);
     if(joueur==1){
-      let m=this.state.matchs[id][tour];
-      m.res1=1;
-      m.res2=0;
-      this.state.matchs[id][tour]=m;
-      let j=this.state.matchs[id/2][tour-1];
-      j.J1;
+      this.state.matchs[id][tour].res1=1;
+      this.state.matchs[id][tour].res2=0;
+
+      if(this.state.matchs[id-1][Math.trunc(tour/2)].j1!=null){
+        this.state.matchs[id-1][Math.trunc(tour/2)].j2=this.state.matchs[id][tour].j1;
+      }
+      else {
+        this.state.matchs[id-1][Math.trunc(tour/2)].j1=this.state.matchs[id][tour].j1;
+      }
     }else {
-      console.log("hgjhgjhg");
-      let m=this.state.matchs[id][tour];
-      m.res2=1;
-      m.res1=0;
-      this.state.matchs[id][tour]=m;
+      this.state.matchs[id][tour].res2=1;
+      this.state.matchs[id][tour].res1=0;
+      if(this.state.matchs[id-1][Math.trunc(tour/2)].j1!=null){
+        this.state.matchs[id-1][Math.trunc(tour/2)].j2=this.state.matchs[id][tour].j2;
+      }
+      else {
+        this.state.matchs[id-1][Math.trunc(tour/2)].j1=this.state.matchs[id][tour].j2;
+      }
     }
 
 
@@ -256,8 +311,10 @@ export default class Tournaments extends React.Component {
 
 
     let matchs = this.state.matchs;
-    /////////////////AFFICHAGE//////////////
     console.table(matchs);
+    this.matchsAffichage();
+    /////////////////AFFICHAGE//////////////
+
     for (var k = 0; k < matchs.length; k++) {
       for (var j = 0; j < matchs[k].length; j++) {
         console.log("match",j+1);
@@ -275,7 +332,9 @@ export default class Tournaments extends React.Component {
         }
       }
     }
+
   }
+
 
   reset() {
     this.setState({
@@ -283,7 +342,7 @@ export default class Tournaments extends React.Component {
       'selected': 0,
       'tournament': undefined,
       'validated': false,
-
+      'matchsSuivants':[],
       'teamsLoaded': false,
       'tournaments': [],
       'teams': [],
@@ -355,22 +414,19 @@ export default class Tournaments extends React.Component {
 
                       <div id="tree">
 
-                        {this.state.matchs.map((line, index) => (
+                        {this.state.matchsSuivants.map(line => (
                           <div className="match" >
-                            <h4>1/{Math.pow(2, index)} Finale</h4>
-                            <div className="row">
-                            {line.map((match) => (
                               <div className="col-sm-4 card">
                                 <div className="card-body">
-                                  <h6>{match==null? "null" : (match.j1==null?"null":match.j1.name)}</h6>
-                                  <h6>{match==null? "null" :(match.j2==null?"null":match.j2.name)}</h6>
-                                  <button className="btn btn-success" onClick={() => this.jeu(match.id,match.tour,1)}>1</button>
-                                  <button className="btn btn-success" onClick={() => this.jeu(match.id,match.tour,2)}>2</button>
+                                  <h6>{line==null? "null" : (line.j1==null?"null":line.j1.name)}</h6>
+                                  <h6>{line==null? "null" :(line.j2==null?"null":line.j2.name)}</h6>
+                                  <button className="btn btn-success" onClick={() => this.jeu(line.id,line.tour,1)}>1</button>
+                                  <button className="btn btn-success" onClick={() => this.jeu(line.id,line.tour,2)}>2</button>
                                 </div>
 
                               </div>
-                            ))}
-                            </div>
+
+
                           </div>
                         ))}
                       </div>
