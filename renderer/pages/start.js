@@ -20,7 +20,6 @@ export default class App extends React.Component {
           <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
         </Head>
 
-        <TitleBar/>
         <Tournaments/>
 
         <style jsx>{`

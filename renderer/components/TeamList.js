@@ -18,11 +18,11 @@ export default class TeamList extends React.Component {
             <td> {index+1} </td>
             <td>
               <h5>{team.name}</h5>
-              <ul>
+              {/* <ul>
                 {team.members.map((member) => (
                   <li key={member.id}>{member.name}</li>
                 ))}
-              </ul>
+              </ul> */}
             </td>
             <td> <button className="btn" onClick={() => this.props.teamPresent(index)}>Present: {team.present == true ? "true" : "false"}</button> </td>
             </tr>
