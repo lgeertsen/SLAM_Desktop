@@ -1,41 +1,58 @@
 import React from 'react';
 //import ReactTable from 'react-table'
-import axios from 'axios';
+// import axios from 'axios';
 import querystring from 'querystring';
+import electron from 'electron';
+import fs from 'fs';
 
 const io = require('socket.io-client');
 
 import TitleBar from '../containers/TitleBar';
+import TournamentContainer from '../containers/TournamentContainer';
 import TournamentListContainer from '../containers/TournamentListContainer';
 import TournamentSetup from '../containers/TournamentSetup';
 
 import Loading from '../components/Loading';
 import Login from '../components/Login';
 
-import Match from '../classes/Match';
+import Api from '../classes/Api';
+// import Match from '../classes/Match';
+import Tournament from '../classes/Tournament';
 
 var socket;
+var api = new Api();
+var tournament = new Tournament();
 
 export default class Tournaments extends React.Component {
   constructor(props) {
     super(props);
 
+    this.remote = electron.remote || false;
+    this.ipcRenderer = electron.ipcRenderer || false;
+    this.dialog = this.remote.dialog || false;
+
     this.state = {
-      'tournamentsLoaded': false,
-      'selected': 0,
-      'tournament': undefined,
-      'validated': false,
-      'teamsLoaded': false,
-      'matchsSuivants':[],
-      'tournaments': [],
-      'teams': [],
-      'matchs': [],
-      'referees': [],
-      'nbTerrain': 1,
-      'username': '',
-      'password': '',
-      'accessToken': '',
-      'authenticated': true
+      started: false,
+      activeTab: 1,
+      tournamentsLoaded: false,
+      selected: 0,
+      tournament: undefined,
+      validated: false,
+      teamsLoaded: false,
+      matchsSuivants:[],
+      tournaments: [],
+      teams: [],
+      players: [],
+      tree: [],
+      matchs: [],
+      history: [],
+      referees: [],
+      terrains: [],
+      nbTerrain: 1,
+      username: '',
+      password: '',
+      accessToken: '',
+      authenticated: true
     }
   }
 
@@ -60,72 +77,15 @@ export default class Tournaments extends React.Component {
   }
 
   login() {
-    axios.post('https://lets-go2.herokuapp.com/oauth/token', querystring.stringify({
-      // 'form_params': {
-      'grant_type': 'password',
-      'client_id': 1,
-      'client_secret': 'DHDxY2KWlSq41JO8XkTNSieGuIvmztFbZWg8AcvT',
-      'username': this.state.username,
-      'password': this.state.password,
-      'scope': '*',
-      // }
-    }))
-    .then(response => {
-      console.log(response);
-      this.setState({'authenticated': true, 'accessToken': response.data.access_token})
-    })
-    .catch(error => {
-      console.log(error);
-    });
+    api.login(this.state.username, this.state.password, data => this.setState(data));
   }
 
   loadTournaments() {
-    axios.get('https://lets-go2.herokuapp.com/api/tournaments', {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + this.state.accessToken
-      }
-    })
-    .then((response) => {
-      console.log(response.data.data);
-      this.setState({tournamentsLoaded: true, tournaments: response.data.data, selected: response.data.data[0].id});
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    api.loadTournaments(this.state.accessToken, data => this.setState(data));
   }
 
   loadTournament() {
-    let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + this.state.selected;
-    axios.get(url, {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + this.state.accessToken
-      }
-    })
-    .then((response) => {
-      console.log(response.data);
-      let teams = [];
-      for(let i in response.data.teams){
-        let t = response.data.teams[i];
-        t.present = false;
-        teams.push(t);
-      }
-      let tournament = {
-        'date': response.data.date,
-        'id': response.data.id,
-        'name': response.data.name,
-        'sport': response.data.sport
-      }
-
-      this.setState({'tournament': tournament, 'teams': teams});
-      console.log("teams = ");
-      console.log(this.state.teams);
-      socket.emit('tournamentConnected', {id: tournament.id, name: tournament.name});
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    api.loadTournament(this.state.selected, this.state.accessToken, data => this.setState(data));
   }
 
   selectTournament(id) {
@@ -139,62 +99,92 @@ export default class Tournaments extends React.Component {
     this.setState({'teams': teams})
   }
 
+  start() {
+    let participantpres = [];
 
-  arbre2(){
-    let participantpres=[];
-    for(let i in this.state.teams){
-      if(this.state.teams[i].present){
+    for(let i in this.state.teams) {
+      if(this.state.teams[i].present) {
         participantpres.push(this.state.teams[i]);
       }
     }
-    let nbJoueur = participantpres.length;
-    let nbTour = 1;
-    while(Math.pow(2,nbTour) < nbJoueur){
-      nbTour++;
+
+    if(participantpres.length > 1) {
+      this.setState({started: true, players: participantpres})
+      tournament.teams = participantpres;
+      // //////////////CREATION DU TABLEAU ET REMPLISSAGE AVEC DES MATCHS VIDES/////////////////////
+      tournament.createTree(participantpres.length, tree => this.setState(tree));
+      ///////////////REMPLISSAGE DU TABLEAU AVEC DES EQUIPES/////////////
+      tournament.fillTree(participantpres, tree => this.setState(tree));
+      console.log(this.state.tree);
+
+      tournament.assignTerrain(this.state.nbTerrain, terrains => this.setState(terrains));
     }
-    let nbDuel = (nbJoueur-(Math.pow(2,nbTour)-nbJoueur))/2;
-    let i=0;
+  }
 
-    let tournoi=[];
+  finishGame() {
+    tournament.finishGame(game, winner, (tree, tables, history) => this.setState({tree: tree, tables: tables, history: history}));
+  }
 
-    let nbDuels=nbJoueur-1;
-    //////////////CREATION DU TABLEAU ET REMPLISSAGE AVEC DES MATCHS VIDES/////////////////////
-    while (i!=nbTour) {
-      tournoi[i]=[];
-      let nbmatchs=Math.pow(2,i);
-      for(let t=0;t<nbmatchs;t++){
-        if(nbDuels>0){
-          tournoi[i][t]=new Match(i,t,null,null);
-          nbDuels--;
-        }
-      }
-      i++;
-    }
 
-    i--;
+  arbre2(){
+    // let participantpres = [];
+    //
+    // for(let i in this.state.teams) {
+    //   if(this.state.teams[i].present) {
+    //     participantpres.push(this.state.teams[i]);
+    //   }
+    // }
+    //
+    // let nbJoueur = participantpres.length;
+    // let nbTour = 1;
+    //
+    // while(Math.pow(2, nbTour) < nbJoueur) {
+    //   nbTour++;
+    // }
+    //
+    // let nbDuel = (nbJoueur - (Math.pow(2, nbTour) - nbJoueur)) / 2;
+    // let i = 0;
+    // let arbre = [];
+    // let nbDuels = nbJoueur-1;
+    //
+    // //////////////CREATION DU TABLEAU ET REMPLISSAGE AVEC DES MATCHS VIDES/////////////////////
+    // while(i != nbTour) {
+    //   arbre[i] = [];
+    //   let nbmatchs = Math.pow(2, i);
+    //   for(let t=0 ; t < nbmatchs; t++) {
+    //     if(nbDuels > 0) {
+    //       arbre[i][t] = new Match(i,t, null, null);
+    //       nbDuels--;
+    //     }
+    //   }
+    //   i++;
+    // }
+    //
+    // i--;
+
     ///////////////REMPLISSAGE DU TABLEAU AVEC DES EQUIPES/////////////
-    while(nbJoueur>0){
-      for (var t = tournoi[i].length-1; t >=0 ; t--) {
-        if(nbJoueur==1){
-          let n=Math.floor(Math.random() * Math.floor(participantpres.length));
-          let joueur=participantpres[n];
-          participantpres.splice(n,1);
-          tournoi[i][t]=new Match(i,t,null,joueur);
-          nbJoueur--;
-        }else {
-          let n1=Math.floor(Math.random() * Math.floor(participantpres.length));
-          let joueur1=participantpres[n1];
-          participantpres.splice(n1,1);
-          let n2=Math.floor(Math.random() * Math.floor(participantpres.length));
-          let joueur2=participantpres[n2];
-          participantpres.splice(n2,1);
-          tournoi[i][t]=new Match(i,t,joueur1,joueur2);
-          nbJoueur--;
-          nbJoueur--;
-        }
-      }
-      i--;
-    }
+    // while(nbJoueur > 0){
+    //   for(var t = arbre[i].length-1; t >= 0; t--) {
+    //     if(nbJoueur == 1){
+    //       let n=Math.floor(Math.random() * Math.floor(participantpres.length));
+    //       let joueur=participantpres[n];
+    //       participantpres.splice(n,1);
+    //       arbre[i][t]=new Match(i,t,null,joueur);
+    //       nbJoueur--;
+    //     }else {
+    //       let n1=Math.floor(Math.random() * Math.floor(participantpres.length));
+    //       let joueur1=participantpres[n1];
+    //       participantpres.splice(n1,1);
+    //       let n2=Math.floor(Math.random() * Math.floor(participantpres.length));
+    //       let joueur2=participantpres[n2];
+    //       participantpres.splice(n2,1);
+    //       arbre[i][t]=new Match(i,t,joueur1,joueur2);
+    //       nbJoueur--;
+    //       nbJoueur--;
+    //     }
+    //   }
+    //   i--;
+    // }
     /////////////////AFFICHAGE//////////////
     // console.table(tournoi);
     // for (var k = 0; k < tournoi.length; k++) {
@@ -214,13 +204,12 @@ export default class Tournaments extends React.Component {
     //
     // }
 
-    this.setState({teamsLoaded:true});
-    this.setState({matchs:tournoi});
-    for (var r = 0; r < tournoi.length; r++) {
-      for (var j = 0; j < tournoi[r].length; j++) {
+    this.setState({started: true, teamsLoaded: true, matchs: arbre});
+    for (var r = 0; r < arbre.length; r++) {
+      for (var j = 0; j < arbre[r].length; j++) {
 
-        if(tournoi[r][j].j1!=null ||tournoi[r][j].j2!=null){
-          this.state.matchsSuivants.push(tournoi[r][j]);
+        if(arbre[r][j].j1!=null ||arbre[r][j].j2!=null){
+          this.state.matchsSuivants.push(arbre[r][j]);
         }
       }
     }
@@ -331,23 +320,22 @@ export default class Tournaments extends React.Component {
 
   reset() {
     this.setState({
-      'tournamentsLoaded': false,
-      'selected': 0,
-      'tournament': undefined,
-      'validated': false,
+      started: false,
+      activeTab: 1,
 
-      'teamsLoaded': false,
+      tournaments: [],
 
-      'tournaments': [],
-      'teams': [],
+      matchs: [],
+      players: [],
+      tree: [],
+      matchs: [],
+      history: [],
+      terrains: [],
 
-      'matchs': [],
-
-      'nbTerrain': 1,
-      'username': '',
-      'password': '',
-      'accessToken': '',
-      'authenticated': true
+      username: '',
+      password: '',
+      accessToken: '',
+      authenticated: true
     });
     this.loadTournaments();
   }
@@ -357,7 +345,11 @@ export default class Tournaments extends React.Component {
   render() {
     return (
       <div id="tournaments">
-        <TitleBar/>
+        <TitleBar
+          started={this.state.started}
+          activeTab={this.state.activeTab}
+          switchTab={value => this.setState({activeTab: value})}
+        />
 
         <div id="container">
           <button id="reset" className="btn btn-outline-dark btn-sm" onClick={() => this.reset()}>reset</button>
@@ -375,26 +367,13 @@ export default class Tournaments extends React.Component {
           :
           <div id="teamsContainer">
             <div id="teams">
-              { this.state.teamsLoaded != false ?
-                <div id="teamsInner">
-                    <h1>Arborescence des matchs</h1>
-                    <div id="teamsListPres" className="container-fluid">
-                      <div id="tree">
-                        {this.state.matchsSuivants.map(line => (
-                          <div className="match" >
-                              <div className="col-sm-4 card">
-                                <div className="card-body">
-                                  <h6>{line==null? "null" : (line.j1==null?"null":line.j1.name)}</h6>
-                                  <h6>{line==null? "null" :(line.j2==null?"null":line.j2.name)}</h6>
-                                  <button className="btn btn-success" onClick={() => this.jeu(line.id,line.tour,1)}>1</button>
-                                  <button className="btn btn-success" onClick={() => this.jeu(line.id,line.tour,2)}>2</button>
-                                </div>
-                              </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+              { this.state.started == true ?
+                <TournamentContainer
+                  activeTab={this.state.activeTab}
+                  tree={this.state.tree}
+                  terrains={this.state.terrains}
+                  finishGame={(game, winner) => this.finishGame(game, winner)}
+                />
                 :
                 <TournamentSetup
                   tournament={this.state.tournament}
@@ -402,9 +381,12 @@ export default class Tournaments extends React.Component {
                   teamPresent={(index) => this.teamPresent(index)}
                   nbTerrain={this.state.nbTerrain}
                   changeTerrain={e => this.setState({'nbTerrain': e.target.value})}
-                  arbre={() => this.arbre2()}
+                  start={() => this.start()}
                   referees={this.state.referees}
-                  allPresent={() => this.allPresent()} />
+                  allPresent={() => this.allPresent()}
+                  loadTeams={() => this.loadTeams()}
+                  saveTeams={() => this.saveTeams()}
+                />
               }
 
             </div>
@@ -458,5 +440,55 @@ export default class Tournaments extends React.Component {
         `}</style>
       </div>
     );
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  ///////////// LOAD & SAVE FILES ///////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////
+
+  loadTeams() {
+    this.dialog.showOpenDialog({ filters: [
+       { name: 'JSON file', extensions: ['json'] }
+     ]}, (fileNames) => {
+      // fileNames is an array that contains all the selected
+      if(fileNames === undefined){
+          return;
+      }
+      var fileName = fileNames[0];
+      fs.readFile(fileName, 'utf-8', (err, data) => {
+        if(err){
+          alert("An error ocurred reading the file :" + err.message);
+          return;
+        }
+        var obj = JSON.parse(data);
+        var teams = [];
+        // if(obj[0].edit == undefined) {
+        //   for(var i in obj) {
+        //     let team = new Team(obj[i]);
+        //     teams.push(team);
+        //   }
+        // }
+        let tournament = {
+          sport: 'tennis',
+          date: 'today'
+        }
+        this.setState({teams: obj, tournament});
+      });
+    });
+  }
+
+  saveTeams() {
+    this.dialog.showSaveDialog({ defaultPath: '/teams.json',
+      filters: [{ name: 'JSON file', extensions: ['json'] }]}, (fileName) => {
+      if (fileName === undefined){
+        return;
+      }
+      let content = JSON.stringify(this.state.teams);
+      fs.writeFile(fileName, content, (err) => {
+        if(err){
+          alert("An error ocurred creating the file "+ err.message)
+        }
+      });
+    });
   }
 }

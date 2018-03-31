@@ -17,7 +17,7 @@ export default class TeamList extends React.Component {
             <tr key={team.id}>
             <td> {index+1} </td>
             <td>
-              <h5>{team.name}</h5>
+              <h5>{team.name()}</h5>
               {/* <ul>
                 {team.members.map((member) => (
                   <li key={member.id}>{member.name}</li>

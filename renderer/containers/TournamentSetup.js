@@ -32,8 +32,10 @@ export default class TournamentSetup extends React.Component {
           nbTerrain={this.props.nbTerrain}
           changeTerrain={(e) => this.props.changeTerrain(e)}
           referees={this.props.referees}
-          arbre={() => this.props.arbre()}
+          start={() => this.props.start()}
           allPresent={() => this.props.allPresent()}
+          loadTeams={() => this.props.loadTeams()}
+          saveTeams={() => this.props.saveTeams()}
         />
 
 

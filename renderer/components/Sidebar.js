@@ -12,6 +12,9 @@ export default class Sidebar extends React.Component {
     return (
       <div id="sidebar">
         <div id="sidebarInner">
+          <button className="btn btn-info" onClick={() => this.props.loadTeams()}>LOAD</button>
+          <button className="btn btn-info" onClick={() => this.props.saveTeams()}>SAVE</button>
+          <hr/>
           <button className="btn btn-warning" onClick={() => this.props.allPresent()}>All Present</button>
           <hr/>
           <input className="form-control" type="number" value={this.props.nbTerrain} onChange={(e) => this.props.changeTerrain(e)}/>
@@ -22,7 +25,7 @@ export default class Sidebar extends React.Component {
           </ul>
         </div>
 
-        <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.props.arbre()}>Start</button>
+        <button id="start" className="btn btn-outline-danger btn-lg" onClick={() => this.props.start()}>Start</button>
 
 
         <style jsx>{`
