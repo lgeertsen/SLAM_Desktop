@@ -121,7 +121,16 @@ export default class Tournaments extends React.Component {
     }
   }
 
-  finishGame() {
+  addPoint(game, id) {
+    let result = tournament.addPoint(game, id, (data, result) => {
+      this.setState(data)
+      if(result != null) {
+        this.finishGame(game, id);
+      }
+    });
+  }
+
+  finishGame(game, winner) {
     tournament.finishGame(game, winner, (tree, tables, history) => this.setState({tree: tree, tables: tables, history: history}));
   }
 
@@ -319,6 +328,7 @@ export default class Tournaments extends React.Component {
   }
 
   reset() {
+    tournament.reset();
     this.setState({
       started: false,
       activeTab: 1,
@@ -373,6 +383,7 @@ export default class Tournaments extends React.Component {
                   tree={this.state.tree}
                   terrains={this.state.terrains}
                   finishGame={(game, winner) => this.finishGame(game, winner)}
+                  addPoint={(game, id) => this.addPoint(game, id)}
                 />
                 :
                 <TournamentSetup
@@ -384,8 +395,6 @@ export default class Tournaments extends React.Component {
                   start={() => this.start()}
                   referees={this.state.referees}
                   allPresent={() => this.allPresent()}
-                  loadTeams={() => this.loadTeams()}
-                  saveTeams={() => this.saveTeams()}
                 />
               }
 
@@ -440,55 +449,5 @@ export default class Tournaments extends React.Component {
         `}</style>
       </div>
     );
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////
-  ///////////// LOAD & SAVE FILES ///////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////
-
-  loadTeams() {
-    this.dialog.showOpenDialog({ filters: [
-       { name: 'JSON file', extensions: ['json'] }
-     ]}, (fileNames) => {
-      // fileNames is an array that contains all the selected
-      if(fileNames === undefined){
-          return;
-      }
-      var fileName = fileNames[0];
-      fs.readFile(fileName, 'utf-8', (err, data) => {
-        if(err){
-          alert("An error ocurred reading the file :" + err.message);
-          return;
-        }
-        var obj = JSON.parse(data);
-        var teams = [];
-        // if(obj[0].edit == undefined) {
-        //   for(var i in obj) {
-        //     let team = new Team(obj[i]);
-        //     teams.push(team);
-        //   }
-        // }
-        let tournament = {
-          sport: 'tennis',
-          date: 'today'
-        }
-        this.setState({teams: obj, tournament});
-      });
-    });
-  }
-
-  saveTeams() {
-    this.dialog.showSaveDialog({ defaultPath: '/teams.json',
-      filters: [{ name: 'JSON file', extensions: ['json'] }]}, (fileName) => {
-      if (fileName === undefined){
-        return;
-      }
-      let content = JSON.stringify(this.state.teams);
-      fs.writeFile(fileName, content, (err) => {
-        if(err){
-          alert("An error ocurred creating the file "+ err.message)
-        }
-      });
-    });
   }
 }

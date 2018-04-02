@@ -27,6 +27,7 @@ export default class TournamentContainer extends React.Component {
             <NowPlaying
               terrains={this.props.terrains}
               finishGame={(game, winner) => this.props.finishGame(game, winner)}
+              addPoint={(game, id) => this.props.addPoint(game, id)}
             />
           </div>
           : ''

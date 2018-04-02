@@ -20,11 +20,15 @@ export default class NowPlaying extends React.Component {
               <ul className="list-group list-group-flush">
                 {this.props.terrains.map((game, index) => (
                   <li key={index} className="list-group-item">
-                    <Terrain
-                      game={game}
-                      index={index}
-                      finishGame={(game, winner) => this.props.finishGame(game, winner)}
-                    />
+                    {game != null ?
+                      <Terrain
+                        game={game}
+                        index={index}
+                        finishGame={(game, winner) => this.props.finishGame(game, winner)}
+                        addPoint={(game, id) => this.props.addPoint(game, id)}
+                      />
+                      : ''
+                    }
                   </li>
                 ))}
               </ul>
