@@ -21,6 +21,13 @@ export default class Terrain extends React.Component {
             <h4>1/{Math.pow(2, this.props.game.tour)}</h4>
             <h6>Finale</h6>
           </div>
+          {this.props.game.referee ?
+            <div className="referee">
+              <h5>Referee</h5>
+              {this.props.game.referee.name}
+            </div>
+            : ''
+          }
         </div>
 
         <div className="teamsContainer">
@@ -47,7 +54,20 @@ export default class Terrain extends React.Component {
             </div>
           </div>
           <div className="score">
-            score
+            <button className="btn btn-outline-dark" onClick={() => this.props.addPoint(this.props.game, 1)}>1</button>
+            <button className="btn btn-outline-dark" onClick={() => this.props.addPoint(this.props.game, 2)}>2</button>
+            <div className="sets">
+              {this.props.game.sets.map((set, index) => (
+                <div key={index} className="set">
+                  <div className="setJ1">{set.score[0]}</div>
+                  <div className="setJ2">{set.score[1]}</div>
+                </div>
+              ))}
+            </div>
+            <div className="games">
+              <div className="game gameJ1">{this.props.game.score[0]}</div>
+              <div className="game">{this.props.game.score[1]}</div>
+            </div>
           </div>
         </div>
 
@@ -98,6 +118,32 @@ export default class Terrain extends React.Component {
           }
           .selected {
             border: 1px solid #28a745;
+          }
+          .sets,
+          .games {
+            display: inline-block;
+          }
+          .sets {
+            border: 2px solid black;
+            border-right-width: 1px;
+          }
+          .set {
+            border-right: 1px solid black;
+            display: inline-block;
+          }
+          .set > div {
+            padding: 5px 8px;
+          }
+          .setJ1,
+          .gameJ1 {
+            border-bottom: 1px solid black;
+          }
+          .games {
+            border: 2px solid black;
+            border-left: none;
+          }
+          .game {
+            padding: 5px 15px;
           }
           `}</style>
         </div>

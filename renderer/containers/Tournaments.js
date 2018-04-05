@@ -65,13 +65,15 @@ export default class Tournaments extends React.Component {
 
     socket.on('connected', () => {
       console.log("connected to server");
+      tournament.socket = socket;
       // this.setState({ isConnected: true });
     });
 
     socket.on('joinTournament', data => {
+      console.log(data);
       console.log("a referee joined: " + data.name);
       let refs = this.state.referees;
-      refs.push(data.name);
+      refs.push(data);
       this.setState({referees: refs});
     });
   }
@@ -85,7 +87,7 @@ export default class Tournaments extends React.Component {
   }
 
   loadTournament() {
-    api.loadTournament(this.state.selected, this.state.accessToken, data => this.setState(data));
+    api.loadTournament(this.state.selected, this.state.accessToken, socket, data => this.setState(data));
   }
 
   selectTournament(id) {
@@ -117,11 +119,20 @@ export default class Tournaments extends React.Component {
       tournament.fillTree(participantpres, tree => this.setState(tree));
       console.log(this.state.tree);
 
-      tournament.assignTerrain(this.state.nbTerrain, terrains => this.setState(terrains));
+      tournament.assignTerrain(this.state.nbTerrain, this.state.referees, terrains => this.setState(terrains));
     }
   }
 
-  finishGame(game,winner) {
+  addPoint(game, id) {
+    let result = tournament.addPoint(game, id, (data, result) => {
+      this.setState(data)
+      if(result != null) {
+        this.finishGame(game, id);
+      }
+    });
+  }
+
+  finishGame(game, winner) {
     tournament.finishGame(game, winner, (tree, tables, history) => this.setState({tree: tree, tables: tables, history: history}));
   }
 
@@ -319,6 +330,7 @@ export default class Tournaments extends React.Component {
   }
 
   reset() {
+    tournament.reset();
     this.setState({
       started: false,
       activeTab: 1,
@@ -331,13 +343,14 @@ export default class Tournaments extends React.Component {
       matchs: [],
       history: [],
       terrains: [],
+      referees: [],
 
       username: '',
       password: '',
       accessToken: '',
       authenticated: true
     });
-    this.loadTournaments();
+    this.loadTournament();
   }
 
 
@@ -373,6 +386,7 @@ export default class Tournaments extends React.Component {
                   tree={this.state.tree}
                   terrains={this.state.terrains}
                   finishGame={(game, winner) => this.finishGame(game, winner)}
+                  addPoint={(game, id) => this.addPoint(game, id)}
                 />
                 :
                 <TournamentSetup
@@ -384,8 +398,6 @@ export default class Tournaments extends React.Component {
                   start={() => this.start()}
                   referees={this.state.referees}
                   allPresent={() => this.allPresent()}
-                  loadTeams={() => this.loadTeams()}
-                  saveTeams={() => this.saveTeams()}
                 />
               }
 
@@ -414,6 +426,7 @@ export default class Tournaments extends React.Component {
           position: fixed;
           bottom: 0;
           left: 0;
+          z-index: 1000;
         }
         #tournamentSelectContainer {
           width: 100%;
@@ -440,55 +453,5 @@ export default class Tournaments extends React.Component {
         `}</style>
       </div>
     );
-  }
-
-  ///////////////////////////////////////////////////////////////////////////////////
-  ///////////// LOAD & SAVE FILES ///////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////////////////
-
-  loadTeams() {
-    this.dialog.showOpenDialog({ filters: [
-       { name: 'JSON file', extensions: ['json'] }
-     ]}, (fileNames) => {
-      // fileNames is an array that contains all the selected
-      if(fileNames === undefined){
-          return;
-      }
-      var fileName = fileNames[0];
-      fs.readFile(fileName, 'utf-8', (err, data) => {
-        if(err){
-          alert("An error ocurred reading the file :" + err.message);
-          return;
-        }
-        var obj = JSON.parse(data);
-        var teams = [];
-        // if(obj[0].edit == undefined) {
-        //   for(var i in obj) {
-        //     let team = new Team(obj[i]);
-        //     teams.push(team);
-        //   }
-        // }
-        let tournament = {
-          sport: 'tennis',
-          date: 'today'
-        }
-        this.setState({teams: obj, tournament});
-      });
-    });
-  }
-
-  saveTeams() {
-    this.dialog.showSaveDialog({ defaultPath: '/teams.json',
-      filters: [{ name: 'JSON file', extensions: ['json'] }]}, (fileName) => {
-      if (fileName === undefined){
-        return;
-      }
-      let content = JSON.stringify(this.state.teams);
-      fs.writeFile(fileName, content, (err) => {
-        if(err){
-          alert("An error ocurred creating the file "+ err.message)
-        }
-      });
-    });
   }
 }

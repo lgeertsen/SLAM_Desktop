@@ -9,7 +9,9 @@ export default class Tournament {
     this._tree = null;
     this._waitingList = [];
     this._terrains = [];
+    this._referees = [];
     this._history = [];
+    this._socket = null;
   }
 
   get teams() { return this._teams; }
@@ -21,11 +23,14 @@ export default class Tournament {
   get terrains() { return this._terrains; }
   set terrains(terrains) { this._terrains = terrains; }
 
+  get socket() { return this._socket; }
+  set socket(socket) { this._socket = socket; }
+
   reset() {
     this._teams = null;
     this._tree = null;
     this._waitingList = [];
-    this._tables = [];
+    this._terrains = [];
   }
 
   createTree(n, callback) {
@@ -88,7 +93,6 @@ export default class Tournament {
         }
       }
     }
-    console.log(this._waitingList);
     callback({tree: this._tree});
   }
 
@@ -96,30 +100,55 @@ export default class Tournament {
     let assigned = false;
     let i = 0;
     let game = Math.trunc(id/2);
-    // while(!assigned) {
-    let match = this._tree[round][i];
-    if(match.joueur1 == null) {
-      match.joueur1 = player;
-    } else if(match.joueur2 == null) {
-      match.joueur2 = player;
-      match.status = "waiting";
-      this._waitingList.push(match);
-      assigned = true;
+    if(round == this._tree.length-2) {
+      while(!assigned) {
+        let match = this._tree[round][i];
+        if(match.joueur1 == null) {
+          match.joueur1 = player;
+          assigned = true;
+        } else if(match.joueur2 == null) {
+          match.joueur2 = player;
+          match.status = "waiting";
+          this._waitingList.push(match);
+          assigned = true;
+        } else {
+          i++
+        }
+      }
     } else {
-      console.error("Can't assign player to new game!!! :O");
+      let match = this._tree[round][game];
+      if(match.joueur1 == null) {
+        match.joueur1 = player;
+      } else if(match.joueur2 == null) {
+        match.joueur2 = player;
+        match.status = "waiting";
+        this._waitingList.push(match);
+        assigned = true;
+      } else {
+        console.error("Can't assign player to new game!!! :O");
+      }
     }
-    // }
   }
 
-  assignTerrain(n, callback) {
+  assignTerrain(n, referees, callback) {
+    this._referees = referees;
     for(let i = 0; i < n; i++) {
       let match = this._waitingList.shift();
-      console.log(match);
       match.terrain = i+1;
       match.status = "playing";
+      if(referees[i]) {
+        match.referee = referees[i];
+        this._referees[i].match = [match.tour, match.id];
+      }
       this._terrains.push(match);
     }
-    callback({terrains: this._terrains});
+    callback({terrains: this._terrains, referees: this._referees});
+  }
+
+  addPoint(match, id, callback) {
+    let m = this._tree[match.tour][match.id];
+    let result = m.addPoint(id);
+    callback({tree: this._tree, terrains: this._terrains}, result);
   }
 
   finishGame(match, winner, callback) {
@@ -127,37 +156,41 @@ export default class Tournament {
       // TODO: Finish tournament
       console.log("Tournament finished");
     } else {
-      console.log(match.round);
-      console.log(match.id);
-      let m = this._tree[match.round][match.id];
+      let m = this._tree[match.tour][match.id];
       m.winner = winner;
       m.status = "finished";
-      this._history.unshift(g);
+      this._history.unshift(m);
       if(winner == 1) {
-        this.assignPlayerToGame(g.joueur1, g.round-1, g.id);
+        this.assignPlayerToGame(m.joueur1, m.tour-1, m.id);
       } else {
-        this.assignPlayerToGame(g.joueur2, g.round-1, g.id);
+        this.assignPlayerToGame(m.joueur2, m.tour-1, m.id);
       }
 
-      this._tables[g.table-1] = null;
+      this._terrains[m.terrain-1] = null;
 
       if(this._waitingList.length) {
         let newMatch = this._waitingList.shift();
-        newMatch.table = m.table;
-        newGame.status = "playing";
+        newMatch.terrain = m.terrain;
+        newMatch.status = "playing";
+        newMatch.referee = m.referee;
 
         let assigned = false;
         let i = 0;
         while(!assigned) {
-          if(this._tables[i] == null) {
-            this._tables[i] == newMatch;
+          if(this._terrains[i] == null) {
+            this._terrains[i] = newMatch;
             assigned = true;
           }
           i++;
         }
         // this._tables[g.table-1] = newGame;
       } else {
-        this._tables.splice(m.table-1, 1);
+        this._terrains.splice(m.terrain-1, 1);
+        for(let i in this._terrains) {
+          if(!this._terrains[i].referee) {
+            this._terrains[i].referee = m.referee;
+          }
+        }
       }
 
       callback(this._tree, this._tables, this._history);
