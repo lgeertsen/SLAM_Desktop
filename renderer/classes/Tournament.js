@@ -9,7 +9,9 @@ export default class Tournament {
     this._tree = null;
     this._waitingList = [];
     this._terrains = [];
+    this._referees = [];
     this._history = [];
+    this._socket = null;
   }
 
   get teams() { return this._teams; }
@@ -20,6 +22,9 @@ export default class Tournament {
 
   get terrains() { return this._terrains; }
   set terrains(terrains) { this._terrains = terrains; }
+
+  get socket() { return this._socket; }
+  set socket(socket) { this._socket = socket; }
 
   reset() {
     this._teams = null;
@@ -125,14 +130,19 @@ export default class Tournament {
     }
   }
 
-  assignTerrain(n, callback) {
+  assignTerrain(n, referees, callback) {
+    this._referees = referees;
     for(let i = 0; i < n; i++) {
       let match = this._waitingList.shift();
       match.terrain = i+1;
       match.status = "playing";
+      if(referees[i]) {
+        match.referee = referees[i];
+        this._referees[i].match = [match.tour, match.id];
+      }
       this._terrains.push(match);
     }
-    callback({terrains: this._terrains});
+    callback({terrains: this._terrains, referees: this._referees});
   }
 
   addPoint(match, id, callback) {
@@ -162,6 +172,7 @@ export default class Tournament {
         let newMatch = this._waitingList.shift();
         newMatch.terrain = m.terrain;
         newMatch.status = "playing";
+        newMatch.referee = m.referee;
 
         let assigned = false;
         let i = 0;
@@ -175,6 +186,11 @@ export default class Tournament {
         // this._tables[g.table-1] = newGame;
       } else {
         this._terrains.splice(m.terrain-1, 1);
+        for(let i in this._terrains) {
+          if(!this._terrains[i].referee) {
+            this._terrains[i].referee = m.referee;
+          }
+        }
       }
 
       callback(this._tree, this._tables, this._history);

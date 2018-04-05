@@ -36,7 +36,7 @@ export default class Sidebar extends React.Component {
           <h4>Arbitres</h4>
           <ul>
             {this.props.referees.map((referee, index) => (
-              <li key={index}>{referee}</li>
+              <li key={index}>{referee.name}</li>
             ))}
           </ul>
         </div>

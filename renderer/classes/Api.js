@@ -45,7 +45,7 @@ export default class Api {
     });
   }
 
-  loadTournament(selected, token, callback) {
+  loadTournament(selected, token, socket, callback) {
     let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + selected;
     axios.get(url, {
       headers: {
@@ -67,9 +67,9 @@ export default class Api {
         'name': response.data.name,
         'sport': response.data.sport
       }
-      callback({'tournament': tournament, 'teams': teams})
       // this.setState({'tournament': tournament, 'teams': teams});
-      // socket.emit('tournamentConnected', {id: tournament.id, name: tournament.name});
+      socket.emit('tournamentConnected', {id: tournament.id, name: tournament.name});
+      callback({'tournament': tournament, 'teams': teams})
     })
     .catch(function (error) {
       console.log(error);

@@ -21,6 +21,13 @@ export default class Terrain extends React.Component {
             <h4>1/{Math.pow(2, this.props.game.tour)}</h4>
             <h6>Finale</h6>
           </div>
+          {this.props.game.referee ?
+            <div className="referee">
+              <h5>Referee</h5>
+              {this.props.game.referee.name}
+            </div>
+            : ''
+          }
         </div>
 
         <div className="teamsContainer">

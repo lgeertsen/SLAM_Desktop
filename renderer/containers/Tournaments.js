@@ -65,13 +65,15 @@ export default class Tournaments extends React.Component {
 
     socket.on('connected', () => {
       console.log("connected to server");
+      tournament.socket = socket;
       // this.setState({ isConnected: true });
     });
 
     socket.on('joinTournament', data => {
+      console.log(data);
       console.log("a referee joined: " + data.name);
       let refs = this.state.referees;
-      refs.push(data.name);
+      refs.push(data);
       this.setState({referees: refs});
     });
   }
@@ -85,7 +87,7 @@ export default class Tournaments extends React.Component {
   }
 
   loadTournament() {
-    api.loadTournament(this.state.selected, this.state.accessToken, data => this.setState(data));
+    api.loadTournament(this.state.selected, this.state.accessToken, socket, data => this.setState(data));
   }
 
   selectTournament(id) {
@@ -117,7 +119,7 @@ export default class Tournaments extends React.Component {
       tournament.fillTree(participantpres, tree => this.setState(tree));
       console.log(this.state.tree);
 
-      tournament.assignTerrain(this.state.nbTerrain, terrains => this.setState(terrains));
+      tournament.assignTerrain(this.state.nbTerrain, this.state.referees, terrains => this.setState(terrains));
     }
   }
 
@@ -341,13 +343,14 @@ export default class Tournaments extends React.Component {
       matchs: [],
       history: [],
       terrains: [],
+      referees: [],
 
       username: '',
       password: '',
       accessToken: '',
       authenticated: true
     });
-    this.loadTournaments();
+    this.loadTournament();
   }
 
 
@@ -423,6 +426,7 @@ export default class Tournaments extends React.Component {
           position: fixed;
           bottom: 0;
           left: 0;
+          z-index: 1000;
         }
         #tournamentSelectContainer {
           width: 100%;
