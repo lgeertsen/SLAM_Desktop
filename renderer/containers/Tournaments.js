@@ -121,7 +121,7 @@ export default class Tournaments extends React.Component {
     }
   }
 
-  finishGame() {
+  finishGame(game,winner) {
     tournament.finishGame(game, winner, (tree, tables, history) => this.setState({tree: tree, tables: tables, history: history}));
   }
 
