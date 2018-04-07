@@ -114,7 +114,7 @@ export default class Tournaments extends React.Component {
       this.setState({started: true, players: participantpres})
       tournament.teams = participantpres;
       // //////////////CREATION DU TABLEAU ET REMPLISSAGE AVEC DES MATCHS VIDES/////////////////////
-      tournament.createTree(participantpres.length, tree => this.setState(tree));
+      tournament.createTree(participantpres.length-1, tree => this.setState(tree));
       ///////////////REMPLISSAGE DU TABLEAU AVEC DES EQUIPES/////////////
       tournament.fillTree(participantpres, tree => this.setState(tree));
       console.log(this.state.tree);
