@@ -158,10 +158,18 @@ export default class Tournament {
       m.winner = winner;
       m.status = "finished";
       this._history.unshift(m);
+      m.joueur1.nbparties++;
+      m.joueur2.nbparties++;
+      let ancienelo1 = m.joueur1.elo;
+      let ancienelo2 = m.joueur2.elo;
       if(winner == 1) {
         this.assignPlayerToGame(m.joueur1, m.tour-1, m.id);
+        m.joueur1.elo = ancienelo1 + m.joueur1.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400)))));
+        m.joueur2.elo = ancienelo2 + m.joueur2.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400)))));
       } else {
         this.assignPlayerToGame(m.joueur2, m.tour-1, m.id);
+        m.joueur1.elo = ancienelo1 + m.joueur1.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400)))));
+        m.joueur2.elo = ancienelo2 + m.joueur2.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400)))));
       }
 
       this._terrains[m.terrain-1] = null;
@@ -192,6 +200,9 @@ export default class Tournament {
       }
 
       callback(this._tree, this._tables, this._history);
+
+      console.log("elo 1 : ", m.joueur1.elo, m.joueur1.coeff(), m.joueur1.nbparties);
+      console.log("elo 2 : ", m.joueur2.elo, m.joueur2.coeff(), m.joueur2.nbparties);
     }
   }
 }
