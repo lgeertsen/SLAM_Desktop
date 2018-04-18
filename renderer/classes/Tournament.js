@@ -11,7 +11,7 @@ export default class Tournament {
     this._terrains = [];
     this._referees = [];
     this._history = [];
-    this._socket = null;
+    this.socket = null;
   }
 
   get teams() { return this._teams; }
@@ -22,9 +22,6 @@ export default class Tournament {
 
   get terrains() { return this._terrains; }
   set terrains(terrains) { this._terrains = terrains; }
-
-  get socket() { return this._socket; }
-  set socket(socket) { this._socket = socket; }
 
   reset() {
     this._teams = null;
@@ -139,6 +136,7 @@ export default class Tournament {
       if(referees[i]) {
         match.referee = referees[i];
         this._referees[i].match = [match.tour, match.id];
+        this.socket.emit("match",{id: match.referee.id, match: match});
       }
       this._terrains.push(match);
     }

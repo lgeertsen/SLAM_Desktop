@@ -69,6 +69,14 @@ export default class Tournaments extends React.Component {
       // this.setState({ isConnected: true });
     });
 
+    socket.on('addPoint', (data) => {
+      console.log("add point");
+      console.log(data);
+      let match = this.state.tree[data.tour][data.id];
+      this.addPoint(match, data.joueur);
+      // this.setState({ isConnected: true });
+    });
+
     socket.on('joinTournament', data => {
       console.log(data);
       console.log("a referee joined: " + data.name);
