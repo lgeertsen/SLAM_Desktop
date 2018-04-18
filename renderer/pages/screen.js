@@ -1,11 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 
-import Tournaments from '../containers/Tournaments';
-
-// New client created successfully.
-// Client ID: 1
-// Client secret: OnyPOEoBzz5j7J52IXGZ8G98S5lWjtMBZv7pSEDr
+import Projection from '../containers/Projection';
 
 export default class App extends React.Component {
   render() {
@@ -19,7 +15,7 @@ export default class App extends React.Component {
           <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
         </Head>
 
-        <Tournaments/>
+        <Projection></Projection>
 
         <style jsx>{`
 

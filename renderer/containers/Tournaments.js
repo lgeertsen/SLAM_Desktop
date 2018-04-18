@@ -87,7 +87,10 @@ export default class Tournaments extends React.Component {
   }
 
   loadTournament() {
-    api.loadTournament(this.state.selected, this.state.accessToken, socket, data => this.setState(data));
+    api.loadTournament(this.state.selected, this.state.accessToken, socket, data => {
+      this.setState(data);
+      this.ipcRenderer.send('tournament', data.tournament);
+    });
   }
 
   selectTournament(id) {
