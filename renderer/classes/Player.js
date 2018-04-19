@@ -4,8 +4,10 @@ export default class Team {
     this.firstName = t.firstName;
     this.lastName = t.lastName;
     this.present = false;
-    this.elo = 1000;
+    this.elo = t.elo;
+    this.eloStart = t.elo;
     this.nbparties = 0;
+    this.rank = null;
   }
 
   name() {

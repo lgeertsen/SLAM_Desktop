@@ -33,6 +33,7 @@ export default class Tournaments extends React.Component {
 
     this.state = {
       started: false,
+      finished: false,
       activeTab: 1,
       tournamentsLoaded: false,
       selected: 0,
@@ -48,6 +49,7 @@ export default class Tournaments extends React.Component {
       history: [],
       referees: [],
       terrains: [],
+      ranking: [],
       nbTerrain: 1,
       username: '',
       password: '',
@@ -144,192 +146,17 @@ export default class Tournaments extends React.Component {
   }
 
   finishGame(game, winner) {
-    tournament.finishGame(game, winner, (tree, tables, history) => this.setState({tree: tree, tables: tables, history: history}));
-  }
-
-
-  arbre2(){
-    // let participantpres = [];
-    //
-    // for(let i in this.state.teams) {
-    //   if(this.state.teams[i].present) {
-    //     participantpres.push(this.state.teams[i]);
-    //   }
-    // }
-    //
-    // let nbJoueur = participantpres.length;
-    // let nbTour = 1;
-    //
-    // while(Math.pow(2, nbTour) < nbJoueur) {
-    //   nbTour++;
-    // }
-    //
-    // let nbDuel = (nbJoueur - (Math.pow(2, nbTour) - nbJoueur)) / 2;
-    // let i = 0;
-    // let arbre = [];
-    // let nbDuels = nbJoueur-1;
-    //
-    // //////////////CREATION DU TABLEAU ET REMPLISSAGE AVEC DES MATCHS VIDES/////////////////////
-    // while(i != nbTour) {
-    //   arbre[i] = [];
-    //   let nbmatchs = Math.pow(2, i);
-    //   for(let t=0 ; t < nbmatchs; t++) {
-    //     if(nbDuels > 0) {
-    //       arbre[i][t] = new Match(i,t, null, null);
-    //       nbDuels--;
-    //     }
-    //   }
-    //   i++;
-    // }
-    //
-    // i--;
-
-    ///////////////REMPLISSAGE DU TABLEAU AVEC DES EQUIPES/////////////
-    // while(nbJoueur > 0){
-    //   for(var t = arbre[i].length-1; t >= 0; t--) {
-    //     if(nbJoueur == 1){
-    //       let n=Math.floor(Math.random() * Math.floor(participantpres.length));
-    //       let joueur=participantpres[n];
-    //       participantpres.splice(n,1);
-    //       arbre[i][t]=new Match(i,t,null,joueur);
-    //       nbJoueur--;
-    //     }else {
-    //       let n1=Math.floor(Math.random() * Math.floor(participantpres.length));
-    //       let joueur1=participantpres[n1];
-    //       participantpres.splice(n1,1);
-    //       let n2=Math.floor(Math.random() * Math.floor(participantpres.length));
-    //       let joueur2=participantpres[n2];
-    //       participantpres.splice(n2,1);
-    //       arbre[i][t]=new Match(i,t,joueur1,joueur2);
-    //       nbJoueur--;
-    //       nbJoueur--;
-    //     }
-    //   }
-    //   i--;
-    // }
-    /////////////////AFFICHAGE//////////////
-    // console.table(tournoi);
-    // for (var k = 0; k < tournoi.length; k++) {
-    //   for (var j = 0; j < tournoi[k].length; j++) {
-    //     console.log("match",j+1);
-    //     if (tournoi[k][j].j1 !=null) {
-    //       console.log(tournoi[k][j].j1.name);
-    //     }else {
-    //       console.log("j1 null");
-    //     }
-    //     if (tournoi[k][j].j2 !=null) {
-    //       console.log(tournoi[k][j].j2.name);
-    //     }else {
-    //       console.log("j2 null");
-    //     }
-    //   }
-    //
-    // }
-
-    this.setState({started: true, teamsLoaded: true, matchs: arbre});
-    for (var r = 0; r < arbre.length; r++) {
-      for (var j = 0; j < arbre[r].length; j++) {
-
-        if(arbre[r][j].j1!=null ||arbre[r][j].j2!=null){
-          this.state.matchsSuivants.push(arbre[r][j]);
-        }
+    tournament.finishGame(game, winner, (tree, tables, history, finished) => {
+      this.setState({tree: tree, tables: tables, history: history, finished: finished});
+      if(finished) {
+        tournament.createRanking((data) => {
+          this.setState(data)
+          setTimeout(() => {
+            console.log(this.state.ranking);
+          }, 1000);
+        });
       }
-    }
-  }
-
-  matchsAffichage(){
-    let k=0;
-    let Suivants=[];
-
-    for (var i = 0; i < this.state.matchs.length; i++) {
-      for (var j = 0; j < this.state.matchs[i].length; j++) {
-        if(this.state.matchs[i][j]!=null){
-          if (this.state.matchs[i][j].j1!=null || this.state.matchs[i][j].j2!=null) {
-            if(this.state.matchs[i][j].res1==null){
-              Suivants.push(this.state.matchs[i][j]);
-              k++;
-            }
-          }
-        }
-      }
-    }
-    // for (var v in this.state.matchsSuivants) {
-    //   if(v.j1!=null){
-    //
-    //     console.log(v.j1.name);
-    //   }else {
-    //     console.log("null j1");
-    //   }
-    //
-    //     if(v.j2!=null){
-    //
-    //       console.log(v.j2.name);
-    //     }else {
-    //       console.log("null j2");
-    //     }
-    //
-    // }
-    console.log("matchsSuivants");
-
-    this.setState({matchsSuivants:Suivants});
-    console.table(this.state.matchsSuivants);
-  }
-
-  jeu(id,tour,joueur){
-    // console.log(id);
-    // console.log(tour);
-    // console.log(joueur);
-    //console.log(this.state.matchs);
-    // console.log(id);
-    // console.log(tour);
-    // console.log(id-1);
-    // console.log(tour/2);
-    if(joueur==1){
-      this.state.matchs[id][tour].res1=1;
-      this.state.matchs[id][tour].res2=0;
-
-      if(this.state.matchs[id-1][Math.trunc(tour/2)].j1!=null){
-        this.state.matchs[id-1][Math.trunc(tour/2)].j2=this.state.matchs[id][tour].j1;
-      }
-      else {
-        this.state.matchs[id-1][Math.trunc(tour/2)].j1=this.state.matchs[id][tour].j1;
-      }
-    }else {
-      this.state.matchs[id][tour].res2=1;
-      this.state.matchs[id][tour].res1=0;
-      if(this.state.matchs[id-1][Math.trunc(tour/2)].j1!=null){
-        this.state.matchs[id-1][Math.trunc(tour/2)].j2=this.state.matchs[id][tour].j2;
-      }
-      else {
-        this.state.matchs[id-1][Math.trunc(tour/2)].j1=this.state.matchs[id][tour].j2;
-      }
-    }
-
-    //remplir le tableau avec les matchs un seul joueur (premier tour)
-
-    let matchs = this.state.matchs;
-    console.table(matchs);
-    this.matchsAffichage();
-    /////////////////AFFICHAGE//////////////
-
-    for (var k = 0; k < matchs.length; k++) {
-      for (var j = 0; j < matchs[k].length; j++) {
-        console.log("match",j+1);
-        if (matchs[k][j].j1 !=null) {
-          console.log(matchs[k][j].j1.name);
-          console.log(matchs[k][j].res1);
-        }else {
-          console.log("j1 null");
-        }
-        if (matchs[k][j].j2 !=null) {
-          console.log(matchs[k][j].j2.name);
-          console.log(matchs[k][j].res2);
-        }else {
-          console.log("j2 null");
-        }
-      }
-    }
-
+    });
   }
 
   allPresent() {
@@ -344,6 +171,7 @@ export default class Tournaments extends React.Component {
     tournament.reset();
     this.setState({
       started: false,
+      finished: false,
       activeTab: 1,
 
       tournaments: [],
@@ -355,6 +183,7 @@ export default class Tournaments extends React.Component {
       history: [],
       terrains: [],
       referees: [],
+      ranking: [],
 
       username: '',
       password: '',
@@ -371,6 +200,7 @@ export default class Tournaments extends React.Component {
       <div id="tournaments">
         <TitleBar
           started={this.state.started}
+          finished={this.state.finished}
           activeTab={this.state.activeTab}
           switchTab={value => this.setState({activeTab: value})}
         />
@@ -393,11 +223,13 @@ export default class Tournaments extends React.Component {
             <div id="teams">
               { this.state.started == true ?
                 <TournamentContainer
+                  finished={this.state.finished}
                   activeTab={this.state.activeTab}
                   tree={this.state.tree}
                   terrains={this.state.terrains}
                   finishGame={(game, winner) => this.finishGame(game, winner)}
                   addPoint={(game, id) => this.addPoint(game, id)}
+                  ranking={this.state.ranking}
                 />
                 :
                 <TournamentSetup
@@ -410,6 +242,7 @@ export default class Tournaments extends React.Component {
                   referees={this.state.referees}
                   allPresent={() => this.allPresent()}
                 />
+
               }
 
             </div>

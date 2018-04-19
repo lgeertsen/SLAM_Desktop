@@ -56,6 +56,7 @@ export default class Api {
     .then((response) => {
       console.log(response.data);
       let teams = [];
+      console.log(response.data.teams);
       for(let i in response.data.teams){
         let t = new Player(response.data.teams[i]);
         // t.present = false;

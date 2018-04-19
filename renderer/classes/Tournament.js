@@ -150,29 +150,39 @@ export default class Tournament {
   }
 
   finishGame(match, winner, callback) {
-    if(match.round == 0) {
-      // TODO: Finish tournament
-      console.log("Tournament finished");
+    let m = this._tree[match.tour][match.id];
+    m.winner = winner;
+    m.status = "finished";
+    this._history.unshift(m);
+    m.joueur1.nbparties++;
+    m.joueur2.nbparties++;
+    let ancienelo1 = m.joueur1.elo;
+    let ancienelo2 = m.joueur2.elo;
+
+    if(winner == 1) {
+      m.joueur1.elo = Math.floor(ancienelo1 + m.joueur1.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400))))));
+      m.joueur2.elo = Math.floor(ancienelo2 + m.joueur2.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400))))));
     } else {
-      let m = this._tree[match.tour][match.id];
-      m.winner = winner;
-      m.status = "finished";
-      this._history.unshift(m);
-      m.joueur1.nbparties++;
-      m.joueur2.nbparties++;
-      let ancienelo1 = m.joueur1.elo;
-      let ancienelo2 = m.joueur2.elo;
+      m.joueur1.elo = Math.floor(ancienelo1 + m.joueur1.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400))))));
+      m.joueur2.elo = Math.floor(ancienelo2 + m.joueur2.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400))))));
+    }
+
+    if(match.tour == 0) {
+      this._terrains = null;
+      callback(this._tree, this._terrains, this._history, true);
+    } else {
       if(winner == 1) {
         this.assignPlayerToGame(m.joueur1, m.tour-1, m.id);
-        m.joueur1.elo = ancienelo1 + m.joueur1.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400)))));
-        m.joueur2.elo = ancienelo2 + m.joueur2.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400)))));
       } else {
         this.assignPlayerToGame(m.joueur2, m.tour-1, m.id);
-        m.joueur1.elo = ancienelo1 + m.joueur1.coeff()*(0-(1/(1+Math.pow(10,(-(ancienelo1 - ancienelo2)/400)))));
-        m.joueur2.elo = ancienelo2 + m.joueur2.coeff()*(1-(1/(1+Math.pow(10,(-(ancienelo2 - ancienelo1)/400)))));
       }
 
-      this._terrains[m.terrain-1] = null;
+      for(let i in this._terrains) {
+        let t = this._terrains[i];
+        if(t.joueur1 == m.joueur1 && t.joueur2 == m.joueur2) {
+          this._terrains[i] = null;
+        }
+      }
 
       if(this._waitingList.length) {
         let newMatch = this._waitingList.shift();
@@ -192,6 +202,7 @@ export default class Tournament {
         // this._tables[g.table-1] = newGame;
       } else {
         this._terrains.splice(m.terrain-1, 1);
+        console.log(this._terrains);
         for(let i in this._terrains) {
           if(!this._terrains[i].referee) {
             this._terrains[i].referee = m.referee;
@@ -199,11 +210,43 @@ export default class Tournament {
         }
       }
 
-      callback(this._tree, this._tables, this._history);
+      callback(this._tree, this._terrains, this._history, false);
 
-      console.log("elo 1 : ", m.joueur1.elo, m.joueur1.coeff(), m.joueur1.nbparties);
-      console.log("elo 2 : ", m.joueur2.elo, m.joueur2.coeff(), m.joueur2.nbparties);
+      // console.log("elo 1 : ", m.joueur1.elo, m.joueur1.coeff(), m.joueur1.nbparties);
+      // console.log("elo 2 : ", m.joueur2.elo, m.joueur2.coeff(), m.joueur2.nbparties);
     }
+  }
+
+  createRanking(callback) {
+    let ranking = [];
+    let m = this._tree[0][0];
+    if(m.winner == 1) {
+      m.joueur1.rank = "Winner";
+      ranking.push(m.joueur1);
+      m.joueur2.rank = "Finalist";
+      ranking.push(m.joueur2);
+    } else {
+      m.joueur2.rank = "Winner";
+      ranking.push(m.joueur2);
+      m.joueur1.rank = "Finalist";
+      ranking.push(m.joueur1);
+    }
+
+    for(let i = 1; i < this._tree.length; i++) {
+      let t = this._tree[i];
+      for(let j = 0; j < t.length; j++) {
+        m = t[j];
+        if(m.winner == 1) {
+          m.joueur2.rank = "1/" + Math.pow(2, m.tour) + " finale";
+          ranking.push(m.joueur2);
+        } else {
+          m.joueur1.rank = "1/" + Math.pow(2, m.tour) + " finale";
+          ranking.push(m.joueur1);
+        }
+      }
+    }
+
+    callback({ranking: ranking});
   }
 }
 

@@ -32,17 +32,41 @@ export default class Game extends React.Component {
       <div id="game" className="col-sm-4">
         <div className={this.getClass()}>
           <div className="card-header bg-transparent" onClick={() => this.setState({expanded: !this.state.expanded})}>
-            <h6>{this.props.game.joueur1 ? this.props.game.joueur1.lastName : '...'} VS {this.props.game.joueur2 ? this.props.game.joueur2.lastName : '...'}</h6>
+            <h6>
+              {this.props.game.joueur1 ?
+                <span>
+                  {this.props.game.winner ?
+                    <span className={this.props.game.winner == 1 ? 'text-success' : 'text-danger'}>
+                      {this.props.game.joueur1.lastName}
+                    </span>
+                  :
+                    this.props.game.joueur1.lastName
+                  }
+                </span>
+              : '...'}
+              <span> VS </span>
+              {this.props.game.joueur2 ?
+                <span>
+                  {this.props.game.winner ?
+                    <span className={this.props.game.winner == 2 ? 'text-success' : 'text-danger'}>
+                      {this.props.game.joueur2.lastName}
+                    </span>
+                  :
+                    this.props.game.joueur2.lastName
+                  }
+                </span>
+              : '...'}
+            </h6>
           </div>
 
           {this.state.expanded ?
             <div className="card-body">
               {this.props.game.joueur1 ?
                 <div>
-                  <h6>{this.props.game.joueur1.name()}</h6>
+                  <h6>{this.props.game.joueur1.name()} ({this.props.game.joueur1.elo})</h6>
                   <h4>VS</h4>
                   {this.props.game.joueur2 ?
-                    <h6>{this.props.game.joueur2.name()}</h6>
+                    <h6>{this.props.game.joueur2.name()} ({this.props.game.joueur2.elo})</h6>
                     :
                     <h6>...</h6>
                   }
@@ -52,7 +76,7 @@ export default class Game extends React.Component {
                   <h6>...</h6>
                   <h4>VS</h4>
                   {this.props.game.joueur2 ?
-                    <h6>{this.props.game.joueur2.name()}</h6>
+                    <h6>{this.props.game.joueur2.name()} ({this.props.game.joueur2.elo})</h6>
                     :
                     <h6>...</h6>
                   }

@@ -45,56 +45,56 @@ app.on('ready', async () => {
   const url = isDev ? devPath : prodPath
   mainWindow.loadURL(url)
 
-  if (externalDisplay) {
-  // if(false) {
-    secondWindow = new BrowserWindow({
-      // width: width,
-      // height: height,
-      x: externalDisplay.bounds.x,
-      y: externalDisplay.bounds.y,
-      closable: false,
-      focusable: false,
-      fullscreen: true,
-      frame: false,
-      skipTaskbar: true,
-    })
-    mainWindow.focus();
-  } else {
-    //mainWindow.webContents.send('noExternalDisplay', {})
-    secondWindow = new BrowserWindow({
-      width: width,
-      height: height,
-      closable: false,
-      // frame: false,
-      icon: path.join(__dirname, 'cupPong_256x256.png')
-    })
-
-    const options = {
-      type: 'info',
-      title: 'Information',
-      message: "Pour un meilleur fonctionnement du logiciel, veuillez brancher un écran externe ou videoprojecteur, et relancer le logiciel"
-    }
-    setTimeout(function() {
-      mainWindow.focus();
-      dialog.showMessageBox(options)
-    }, 3000)
-  }
-
-  secondWindow.setMenu(null);
-
-  const devPath2 = 'http://localhost:8000/screen'
-
-  const prodPath2 = format({
-    pathname: resolve('renderer/out/screen/index.html'),
-    protocol: 'file:',
-    slashes: true
-  })
-
-  const url2 = isDev ? devPath2 : prodPath2
-  secondWindow.loadURL(url2)
+  // if (externalDisplay) {
+  // // if(false) {
+  //   secondWindow = new BrowserWindow({
+  //     // width: width,
+  //     // height: height,
+  //     x: externalDisplay.bounds.x,
+  //     y: externalDisplay.bounds.y,
+  //     closable: false,
+  //     focusable: false,
+  //     fullscreen: true,
+  //     frame: false,
+  //     skipTaskbar: true,
+  //   })
+  //   mainWindow.focus();
+  // } else {
+  //   //mainWindow.webContents.send('noExternalDisplay', {})
+  //   secondWindow = new BrowserWindow({
+  //     width: width,
+  //     height: height,
+  //     closable: false,
+  //     // frame: false,
+  //     icon: path.join(__dirname, 'cupPong_256x256.png')
+  //   })
+  //
+  //   const options = {
+  //     type: 'info',
+  //     title: 'Information',
+  //     message: "Pour un meilleur fonctionnement du logiciel, veuillez brancher un écran externe ou videoprojecteur, et relancer le logiciel"
+  //   }
+  //   setTimeout(function() {
+  //     mainWindow.focus();
+  //     dialog.showMessageBox(options)
+  //   }, 3000)
+  // }
+  //
+  // secondWindow.setMenu(null);
+  //
+  // const devPath2 = 'http://localhost:8000/screen'
+  //
+  // const prodPath2 = format({
+  //   pathname: resolve('renderer/out/screen/index.html'),
+  //   protocol: 'file:',
+  //   slashes: true
+  // })
+  //
+  // const url2 = isDev ? devPath2 : prodPath2
+  // secondWindow.loadURL(url2)
 
   mainWindow.webContents.openDevTools()
-  secondWindow.webContents.openDevTools()
+  // secondWindow.webContents.openDevTools()
 
   if (secondWindow != null) {
     ipcMain.on('tournament', (event, tournament) => {

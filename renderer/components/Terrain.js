@@ -34,7 +34,7 @@ export default class Terrain extends React.Component {
           <div className="teams">
             <div className={this.state.selected == 1 ? "team1 selected" : "team1"} onClick={() => this.setState({selected: 1})}>
               {/* <h3>{this.props.game.team1.id+1}</h3> */}
-              <h5>{this.props.game.joueur1.name()}</h5>
+              <h5>{this.props.game.joueur1.name()}  ({this.props.game.joueur1.elo})</h5>
             </div>
             <div className="vs">
               <h1>VS
@@ -50,7 +50,7 @@ export default class Terrain extends React.Component {
             </div>
             <div className={this.state.selected == 2 ? "team2 selected" : "team2"} onClick={() => this.setState({selected: 2})}>
               {/* <h3>{this.props.game.team2.id+1}</h3> */}
-              <h5>{this.props.game.joueur2.name()}</h5>
+              <h5>{this.props.game.joueur2.name()} ({this.props.game.joueur2.elo})</h5>
             </div>
           </div>
           <div className="score">

@@ -2,6 +2,7 @@ import React from 'react';
 
 import NowPlaying from '../containers/NowPlaying';
 import Overview from '../containers/Overview';
+import Ranking from '../containers/Ranking';
 
 export default class TournamentContainer extends React.Component {
   constructor(props) {
@@ -16,6 +17,7 @@ export default class TournamentContainer extends React.Component {
   render() {
     return (
       <div id="TournamentContainer">
+
         {this.props.activeTab == 1 ?
           <div id="overview">
             <Overview tree={this.props.tree}/>
@@ -24,11 +26,17 @@ export default class TournamentContainer extends React.Component {
         }
         {this.props.activeTab == 2 ?
           <div id="nowPlaying">
-            <NowPlaying
-              terrains={this.props.terrains}
-              finishGame={(game, winner) => this.props.finishGame(game, winner)}
-              addPoint={(game, id) => this.props.addPoint(game, id)}
-            />
+            {this.props.finished ?
+              <Ranking
+                ranking={this.props.ranking}
+              />
+            :
+              <NowPlaying
+                terrains={this.props.terrains}
+                finishGame={(game, winner) => this.props.finishGame(game, winner)}
+                addPoint={(game, id) => this.props.addPoint(game, id)}
+              />
+            }
           </div>
           : ''
         }

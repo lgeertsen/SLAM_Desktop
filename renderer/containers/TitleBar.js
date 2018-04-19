@@ -46,9 +46,15 @@ export default class TitleBar extends React.Component {
             <div className={this.props.activeTab == 1 ? "tab active" : "tab"}
               onClick={() => this.props.switchTab(1)}>Overview</div>
             <div className={this.props.activeTab == 2 ? "tab active" : "tab"}
-              onClick={() => this.props.switchTab(2)}>Now Playing</div>
-            <div className={this.props.activeTab == 3 ? "tab active" : "tab"}
-              onClick={() => this.props.switchTab(3)}>History</div>
+              onClick={() => this.props.switchTab(2)}>
+              {this.props.finished ?
+                'Ranking'
+              :
+                'Now Playing'
+              }
+            </div>
+            {/* <div className={this.props.activeTab == 3 ? "tab active" : "tab"}
+              onClick={() => this.props.switchTab(3)}>History</div> */}
             <div className={this.props.activeTab == 4 ? "tab active" : "tab"}
               onClick={() => this.props.switchTab(4)}>Options</div>
           </div>

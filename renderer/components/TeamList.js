@@ -24,6 +24,9 @@ export default class TeamList extends React.Component {
                 </ul> */}
               </div>
               <div>
+                <h5>ELO: {team.elo}</h5>
+              </div>
+              <div>
                 <button className="btn btn-light" onClick={() => this.props.teamPresent(index)}>
                   Present: {team.present == true ? "true" : "false"}
                 </button>
@@ -42,6 +45,9 @@ export default class TeamList extends React.Component {
             padding: 5px 10px;
             display: flex;
             align-items: center;
+          }
+          .flex1 {
+            flex-grow: 1;
           }
           .flex3 {
             flex-grow: 3;
