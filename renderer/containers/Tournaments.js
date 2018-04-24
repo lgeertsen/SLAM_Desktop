@@ -1,7 +1,6 @@
 import React from 'react';
 //import ReactTable from 'react-table'
 // import axios from 'axios';
-import querystring from 'querystring';
 import electron from 'electron';
 import fs from 'fs';
 
@@ -54,7 +53,8 @@ export default class Tournaments extends React.Component {
       username: '',
       password: '',
       accessToken: '',
-      authenticated: true
+      authenticated: true,
+      sending: false
     }
   }
 
@@ -101,6 +101,14 @@ export default class Tournaments extends React.Component {
       this.setState(data);
       this.ipcRenderer.send('tournament', data.tournament);
     });
+  }
+
+  sendResults() {
+    api.sendResults(this.state.tournament.id, this.state.accessToken, this.state.ranking);
+    this.setState({sending: true});
+    setTimeout(() => {
+      this.setState({sending: false});
+    }, 2000);
   }
 
   selectTournament(id) {
@@ -150,10 +158,7 @@ export default class Tournaments extends React.Component {
       this.setState({tree: tree, tables: tables, history: history, finished: finished});
       if(finished) {
         tournament.createRanking((data) => {
-          this.setState(data)
-          setTimeout(() => {
-            console.log(this.state.ranking);
-          }, 1000);
+          this.setState(data);
         });
       }
     });
@@ -188,7 +193,8 @@ export default class Tournaments extends React.Component {
       username: '',
       password: '',
       accessToken: '',
-      authenticated: true
+      authenticated: true,
+      sending: false
     });
     this.loadTournament();
   }
@@ -230,6 +236,8 @@ export default class Tournaments extends React.Component {
                   finishGame={(game, winner) => this.finishGame(game, winner)}
                   addPoint={(game, id) => this.addPoint(game, id)}
                   ranking={this.state.ranking}
+                  sendResults={() => this.sendResults()}
+                  sending={this.state.sending}
                 />
                 :
                 <TournamentSetup

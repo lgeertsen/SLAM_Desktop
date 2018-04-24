@@ -29,6 +29,8 @@ export default class TournamentContainer extends React.Component {
             {this.props.finished ?
               <Ranking
                 ranking={this.props.ranking}
+                sendResults={() => this.props.sendResults()}
+                sending={this.props.sending}
               />
             :
               <NowPlaying

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import querystring from 'querystring';
 
 import Player from '../classes/Player';
 
@@ -71,6 +72,42 @@ export default class Api {
       // this.setState({'tournament': tournament, 'teams': teams});
       socket.emit('tournamentConnected', {id: tournament.id, name: tournament.name});
       callback({'tournament': tournament, 'teams': teams})
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  sendResults(id, token, results) {
+    console.log("SENDING RESULTS");
+    console.log(id);
+
+    console.log(results);
+
+    var postData = {
+      results: results
+    };
+
+    let axiosConfig = {
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        "Access-Control-Allow-Origin": "*",
+      }
+    };
+
+    let url = 'https://lets-go2.herokuapp.com/api/tournaments/' + id;
+    axios.post(url, postData, axiosConfig)
+
+    //   {
+    //   results: results
+    // }, {
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': 'Bearer ' + token
+    //   }
+    // })
+    .then((response) => {
+      console.log(response);
     })
     .catch(function (error) {
       console.log(error);

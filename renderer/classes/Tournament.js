@@ -222,15 +222,21 @@ export default class Tournament {
     let m = this._tree[0][0];
     if(m.winner == 1) {
       m.joueur1.rank = "Winner";
+      m.joueur1.rankNb = 1;
       ranking.push(m.joueur1);
       m.joueur2.rank = "Finalist";
+      m.joueur2.rankNb = 2;
       ranking.push(m.joueur2);
     } else {
       m.joueur2.rank = "Winner";
+      m.joueur2.rankNb = 1;
       ranking.push(m.joueur2);
       m.joueur1.rank = "Finalist";
+      m.joueur1.rankNb = 2;
       ranking.push(m.joueur1);
     }
+
+    let rankNb = 3;
 
     for(let i = 1; i < this._tree.length; i++) {
       let t = this._tree[i];
@@ -238,12 +244,15 @@ export default class Tournament {
         m = t[j];
         if(m.winner == 1) {
           m.joueur2.rank = "1/" + Math.pow(2, m.tour) + " finale";
+          m.joueur2.rankNb = rankNb;
           ranking.push(m.joueur2);
         } else {
           m.joueur1.rank = "1/" + Math.pow(2, m.tour) + " finale";
+          m.joueur1.rankNb = rankNb;
           ranking.push(m.joueur1);
         }
       }
+      rankNb++;
     }
 
     callback({ranking: ranking});

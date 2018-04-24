@@ -8,6 +8,7 @@ export default class Team {
     this.eloStart = t.elo;
     this.nbparties = 0;
     this.rank = null;
+    this.rankNb= null;
   }
 
   name() {

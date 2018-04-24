@@ -13,6 +13,13 @@ export default class Ranking extends React.Component {
     return (
       <div id="ranking">
         <div className="container">
+          {this.props.sending ?
+            <div className="progress">
+              <div className="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style={{width: 100 + '%'}}></div>
+            </div>
+          :
+            <button className="btn btn-info" onClick={() => this.props.sendResults()}>Send results to server</button>
+          }
           <ul className="list-group">
             <li className="list-group-item list-group-item-dark">
               <div className="rank">
@@ -48,8 +55,15 @@ export default class Ranking extends React.Component {
         </div>
 
         <style jsx>{`
+          .container {
+            margin-top: 25px;
+            margin-bottom: 25px;
+          }
+          .btn {
+            width: 100%;
+          }
           .list-group {
-            margin: 25px 0;
+            margin-top: 15px;
           }
           .list-group-item {
             display: flex;
