@@ -93,7 +93,7 @@ app.on('ready', async () => {
   // const url2 = isDev ? devPath2 : prodPath2
   // secondWindow.loadURL(url2)
 
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   // secondWindow.webContents.openDevTools()
 
   if (secondWindow != null) {
@@ -110,8 +110,8 @@ app.on('ready', async () => {
     mainWindow = null
     if (secondWindow != null) {
       // secondWindow.close()
-      secondWindow.destroy()
-      secondWindow = null;
+      // secondWindow.destroy()
+      // secondWindow = null;
     }
   })
 
